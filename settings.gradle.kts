@@ -1,7 +1,8 @@
 pluginManagement {
     repositories {
-        gradlePluginPortal()
         mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
         maven("https://repo.papermc.io/repository/maven-public/")
     }
 }
@@ -10,7 +11,13 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
 }
 
-rootProject.name = "forky"
+rootProject.name = "silverwolfpaper"
 
-include("forky-api")
-include("forky-server")
+include(
+    "api",
+    "core", 
+    "silverwolfpaper-api",
+    "silverwolfpaper-server",
+    "aspaper-api",
+    "aspaper-server"
+)
