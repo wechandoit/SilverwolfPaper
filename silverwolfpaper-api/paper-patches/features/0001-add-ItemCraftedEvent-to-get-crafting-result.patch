@@ -1,0 +1,93 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ethan Chan <ethanchan7981@gmail.com>
+Date: Sun, 7 Dec 2025 01:41:51 -0500
+Subject: [PATCH] add ItemCraftedEvent to get crafting result
+
+
+diff --git a/src/main/java/io/papermc/paper/event/inventory/ItemCraftedEvent.java b/src/main/java/io/papermc/paper/event/inventory/ItemCraftedEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5078a4e09392aa425f38a073aad0f09a32757a63
+--- /dev/null
++++ b/src/main/java/io/papermc/paper/event/inventory/ItemCraftedEvent.java
+@@ -0,0 +1,80 @@
++package io.papermc.paper.event.inventory;
++
++import org.bukkit.entity.Player;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.bukkit.event.inventory.InventoryEvent;
++import org.bukkit.inventory.CraftingInventory;
++import org.bukkit.inventory.InventoryView;
++import org.bukkit.inventory.ItemStack;
++import org.jetbrains.annotations.ApiStatus;
++import org.jetbrains.annotations.NotNull;
++import org.jspecify.annotations.NullMarked;
++
++
++/**
++ * Called when a player picks up a crafted item from the result slot of a crafting grid.
++ */
++@NullMarked
++public class ItemCraftedEvent extends InventoryEvent implements Cancellable {
++    private static final HandlerList HANDLERS = new HandlerList();
++    private final Player player;
++    private final ItemStack craftedItemStack;
++    private final CraftingInventory matrix;
++    private boolean cancelled;
++
++    @ApiStatus.Internal
++    public ItemCraftedEvent(@NotNull CraftingInventory matrix, @NotNull InventoryView view, final Player player, final ItemStack craftedItemStack) {
++        super(view);
++        this.matrix = matrix;
++        this.player = player;
++        this.craftedItemStack = craftedItemStack;
++    }
++
++    /**
++     * Gets the player who triggered the event by picking up the crafted item.
++     *
++     * @return player
++     */
++    public Player getPlayer() {
++        return player;
++    }
++
++    /**
++     * Gets the itemstack that was crafted and picked up by the player.
++     *
++     * @return the itemstack
++     */
++    public ItemStack getCraftedItemStack() {
++        return craftedItemStack.clone();
++    }
++
++    @Override
++    public HandlerList getHandlers() {
++        return HANDLERS;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return this.cancelled;
++    }
++
++    @Override
++    public void setCancelled(final boolean cancel) {
++        this.cancelled = cancel;
++    }
++
++    public static HandlerList getHandlerList() {
++        return HANDLERS;
++    }
++
++    /**
++     * @return The crafting inventory on which the recipe was formed.
++     */
++    @NotNull
++    @Override
++    public CraftingInventory getInventory() {
++        return this.matrix;
++    }
++}
+\ No newline at end of file

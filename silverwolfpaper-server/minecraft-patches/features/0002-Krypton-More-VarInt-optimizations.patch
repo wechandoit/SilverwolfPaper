@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Sat, 15 Nov 2025 23:52:58 -0500
+Subject: [PATCH] Krypton: More VarInt optimizations
+
+
+diff --git a/net/minecraft/network/VarInt.java b/net/minecraft/network/VarInt.java
+index f0277882f1fb97c53392c61d02519d899ad50515..003be7876853f0f2bf45eeeeb35daf3bc2caa499 100644
+--- a/net/minecraft/network/VarInt.java
++++ b/net/minecraft/network/VarInt.java
+@@ -65,13 +65,33 @@ public class VarInt {
+         return buffer;
+     }
+     public static ByteBuf writeOld(ByteBuf buffer, int value) {
+-    // Paper end - Optimize VarInts
+-        while ((value & -128) != 0) {
+-            buffer.writeByte(value & 127 | 128);
+-            value >>>= 7;
++        // Ported VarInt optimization (See https://steinborn.me/posts/performance/how-fast-can-you-write-a-varint/)
++        if ((value & (0xFFFFFFFF << 7)) == 0) {
++            buffer.writeByte(value);
++        } else if ((value & (0xFFFFFFFF << 14)) == 0) {
++            int w = (value & 0x7F | 0x80) << 8 | (value >>> 7);
++            buffer.writeShort(w);
++        } else if ((value & (0xFFFFFFFF << 21)) == 0) {
++            int w = (value & 0x7F | 0x80) << 16
++                  | ((value >>> 7) & 0x7F | 0x80) << 8
++                  | (value >>> 14);
++            buffer.writeMedium(w);
++        } else if ((value & (0xFFFFFFFF << 28)) == 0) {
++            int w = (value & 0x7F | 0x80) << 24
++                  | ((value >>> 7) & 0x7F | 0x80) << 16
++                  | ((value >>> 14) & 0x7F | 0x80) << 8
++                  | (value >>> 21);
++            buffer.writeInt(w);
++        } else {
++            int w = (value & 0x7F | 0x80) << 24
++                  | ((value >>> 7) & 0x7F | 0x80) << 16
++                  | ((value >>> 14) & 0x7F | 0x80) << 8
++                  | ((value >>> 21) & 0x7F | 0x80);
++            buffer.writeInt(w);
++            buffer.writeByte(value >>> 28);
+         }
+ 
+-        buffer.writeByte(value);
+         return buffer;
++        // Paper end - Optimize VarInts
+     }
+ }
