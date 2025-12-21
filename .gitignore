@@ -6,13 +6,18 @@ build
 
 /run
 
-/forky-server/build.gradle.kts
-/forky-server/src/minecraft
+/silverwolfpaper-server/build.gradle.kts
+/silverwolfpaper-server/src/minecraft
 /paper-server
-/fork-server
-/forky-api/build.gradle.kts
+/aspaper-server
+/silverwolfpaper-api/build.gradle.kts
 /paper-api
 /paper-api-generator
-/fork-api
+/aspaper-api
 
+/api/build.gradle.kts
+/api/src/
+/core/build.gradle.kts
+/core/src/
 .idea/
+/buildSrc
