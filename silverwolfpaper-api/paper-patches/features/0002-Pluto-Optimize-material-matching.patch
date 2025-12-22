@@ -1,0 +1,84 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Mon, 22 Dec 2025 21:52:13 +0800
+Subject: [PATCH] Pluto: Optimize material matching
+
+
+diff --git a/src/main/java/org/bukkit/Material.java b/src/main/java/org/bukkit/Material.java
+index 797d09ec878210ebadcf56ff4702ec60076454cf..ffadfbe6c0d20bb19960bc6c9e4cac57443f9f36 100644
+--- a/src/main/java/org/bukkit/Material.java
++++ b/src/main/java/org/bukkit/Material.java
+@@ -3069,6 +3069,25 @@ public enum Material implements Keyed, Translatable, net.kyori.adventure.transla
+         return matchMaterial(name, false);
+     }
+ 
++    // SW start - Pluto: Optimise material matching
++    private static boolean isWhitespace(int c) {
++        return c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\f';
++    }
++
++    private static boolean isLetterOrDigit(int c) {
++        return (c >= 'A' && c <= 'Z') || c == '_' || (c >= '0' && c <= '9');
++    }
++
++    private static char toUpperCase(char c) {
++        return (c >= 'a' && c <= 'z') ? (char) (c - 32) : c;
++    }
++
++    private static boolean isLowerCase(char c) {
++        return c >= 'a' && c <= 'z';
++    }
++    // SW end - Pluto: Optimise material matching
++
++
+     /**
+      * Attempts to match the Material with the given name.
+      * <p>
+@@ -3090,9 +3109,45 @@ public enum Material implements Keyed, Translatable, net.kyori.adventure.transla
+             filtered = filtered.substring((NamespacedKey.MINECRAFT + ":").length());
+         }
+ 
+-        filtered = filtered.toUpperCase(Locale.ROOT);
++        // SW start - Pluto: Optimise material matching
++        char[] chars = filtered.toCharArray();
++        boolean wasChanged = false;
++        int oldLength = chars.length, newLength = oldLength;
+ 
+-        filtered = filtered.replaceAll("\\s+", "_").replaceAll("\\W", "");
++        for (int i = 0; i < oldLength; i++) {
++            if (isLetterOrDigit(chars[i])) continue;
++
++            if (isLowerCase(chars[i])) {
++                chars[i] = toUpperCase(chars[i]);
++                wasChanged = true;
++                continue;
++            }
++
++            if (isWhitespace(chars[i])) {
++                chars[i] = '_';
++                wasChanged = true;
++                continue;
++            }
++
++            chars[i] = '\0';
++            newLength--;
++            wasChanged = true;
++        }
++
++        if (wasChanged) {
++            if (newLength != oldLength) {
++                char[] newChars = new char[newLength];
++                int index = 0;
++                for (int i = 0; i < oldLength; i++) {
++                    if (chars[i] == '\0') continue;
++                    newChars[index] = chars[i];
++                    index++;
++                }
++                chars = newChars;
++            }
++            filtered = new String(chars);
++        }
++        // SW end - Pluto: Optimise material matching
+         return getMaterial(filtered, legacyName);
+     }
+ 
