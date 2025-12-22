@@ -214,7 +214,7 @@ index c855c48ede60eb744cc65e1b560b9a7a3417d8aa..4c32624f85e259bf9ba5890626edd4f9
                      this.getInventory().equipment.set(value, net.minecraft.world.item.ItemStack.EMPTY);
                  }
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 1feb7e47b3aeb840676cf90ed3f62a42f4b03306..6080d247d4f45bdfef72a5fa06bd92e961782fe6 100644
+index 478a4a66fd8dc9e102c5f202d0bb00ca81308218..13bae93c84f82529f8b1d9e8dd5aedef0d1a4c0f 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -153,15 +153,7 @@ import net.minecraft.util.Util;
@@ -283,10 +283,10 @@ index 09fd99c9cbd23b5f3c899bfb00c9b89651948ed8..ff377453b5ef8dd4af21906eb091b82a
  
      public ZeroBitStorage(int size) {
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index ad4322950726f86e250927f097a4214ed25ddce0..456db3cb84fd63c573163c75cb80732bd4297174 100644
+index cd434d5a6e37a525611fd0b44b9a859435c4d157..7732e746af6644b6047d3145a1db46b7fc7696ae 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
-@@ -3150,7 +3150,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
+@@ -3152,7 +3152,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
      }
  
      private boolean attemptToShearEquipment(Player player, InteractionHand hand, ItemStack stack, Mob mob) {
