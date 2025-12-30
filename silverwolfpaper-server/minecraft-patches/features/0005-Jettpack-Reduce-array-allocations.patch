@@ -283,7 +283,7 @@ index 09fd99c9cbd23b5f3c899bfb00c9b89651948ed8..ff377453b5ef8dd4af21906eb091b82a
  
      public ZeroBitStorage(int size) {
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index cd434d5a6e37a525611fd0b44b9a859435c4d157..7732e746af6644b6047d3145a1db46b7fc7696ae 100644
+index ca4f45f5d2d0b69e51b0d19876ce71a0f9d096a7..13b19981ba957eafe22db80dadf9e6837a18168c 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
 @@ -3152,7 +3152,7 @@ public abstract class Entity implements SyncedDataHolder, DebugValueSource, Name
@@ -341,10 +341,10 @@ index b383836c200ca9f7bd84639367aa81b57868fb25..6386390ab877551d1a919f4f3916227d
  
      private static Map<EquipmentSlot, Float> createForAllSlots(List<EquipmentSlot> equipmentSlots, float dropChance) {
 diff --git a/net/minecraft/world/entity/LivingEntity.java b/net/minecraft/world/entity/LivingEntity.java
-index 730bf0cfdc9698a74b269b76fed614e08e058153..0669de8f0fadd207d836f727a3f175950e01b86d 100644
+index 9dacf9cef03ecb87464bfecf2399f2864be6d6ba..2676e1e11d16d76165fab41d31572b5d2d303795 100644
 --- a/net/minecraft/world/entity/LivingEntity.java
 +++ b/net/minecraft/world/entity/LivingEntity.java
-@@ -3502,7 +3502,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+@@ -3514,7 +3514,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
          Map<org.bukkit.inventory.EquipmentSlot, io.papermc.paper.event.entity.EntityEquipmentChangedEvent.EquipmentChange> equipmentChanges = null;
          // Paper end - EntityEquipmentChangedEvent
  
@@ -353,7 +353,7 @@ index 730bf0cfdc9698a74b269b76fed614e08e058153..0669de8f0fadd207d836f727a3f17595
              ItemStack itemStack = this.lastEquipmentItems.get(equipmentSlot);
              ItemStack itemBySlot = this.getItemBySlot(equipmentSlot);
              if (this.equipmentHasChanged(itemStack, itemBySlot)) {
-@@ -3788,7 +3788,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+@@ -3800,7 +3800,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
  
      protected boolean canGlide() {
          if (!this.onGround() && !this.isPassenger() && !this.hasEffect(MobEffects.LEVITATION)) {

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: wechandoit <ethanchan7981@gmail.com>
 Date: Mon, 22 Dec 2025 16:15:17 +0800
-Subject: [PATCH] Lithium:  Uses custom hashset/list combination for faster mob
+Subject: [PATCH] Lithium: Uses custom hashset/list combination for faster mob
  spawn checks
 
 

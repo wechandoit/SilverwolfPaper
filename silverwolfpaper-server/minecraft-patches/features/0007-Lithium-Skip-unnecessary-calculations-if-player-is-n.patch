@@ -1,15 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: wechandoit <ethanchan7981@gmail.com>
 Date: Mon, 22 Dec 2025 15:52:39 +0800
-Subject: [PATCH] Lithium: Skip unnecessary calculations if player is not 
+Subject: [PATCH] Lithium: Skip unnecessary calculations if player is not
  flying or swing
 
 
 diff --git a/net/minecraft/world/entity/LivingEntity.java b/net/minecraft/world/entity/LivingEntity.java
-index 0669de8f0fadd207d836f727a3f175950e01b86d..7abc91dc8d1d2b6b96e813d33c11af9d00e1e3c1 100644
+index 2676e1e11d16d76165fab41d31572b5d2d303795..de3dcea811e51b0d54281246e297209bb203a110 100644
 --- a/net/minecraft/world/entity/LivingEntity.java
 +++ b/net/minecraft/world/entity/LivingEntity.java
-@@ -2761,6 +2761,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+@@ -2773,6 +2773,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
      }
  
      protected void updateSwingTime() {
@@ -17,7 +17,7 @@ index 0669de8f0fadd207d836f727a3f175950e01b86d..7abc91dc8d1d2b6b96e813d33c11af9d
          int currentSwingDuration = this.getCurrentSwingDuration();
          if (this.swinging) {
              this.swingTime++;
-@@ -3764,6 +3765,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+@@ -3776,6 +3777,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
          this.checkFallDistanceAccumulation();
          if (!this.level().isClientSide()) {
              if (!this.canGlide()) {

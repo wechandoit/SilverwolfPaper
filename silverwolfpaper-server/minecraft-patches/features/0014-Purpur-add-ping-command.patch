@@ -1,0 +1,194 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Tue, 30 Dec 2025 14:48:04 +0900
+Subject: [PATCH] Purpur: add ping command
+
+
+diff --git a/net/minecraft/commands/CommandSourceStack.java b/net/minecraft/commands/CommandSourceStack.java
+index 566304106fd4f1c677a56e7c66282d1570e7b974..5f03c5b233f13622849d7a257cc439c8227e6a91 100644
+--- a/net/minecraft/commands/CommandSourceStack.java
++++ b/net/minecraft/commands/CommandSourceStack.java
+@@ -513,6 +513,30 @@ public class CommandSourceStack implements ExecutionCommandSource<CommandSourceS
+         }
+     }
+ 
++    // SW: Purpur start - Purpur config files
++    public void sendSuccess(@Nullable String message) {
++        sendSuccess(message, false);
++    }
++
++    public void sendSuccess(@Nullable String message, boolean broadcastToOps) {
++        if (message == null) {
++            return;
++        }
++        sendSuccess(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(message), broadcastToOps);
++    }
++
++    public void sendSuccess(net.kyori.adventure.text.@Nullable Component message) {
++        sendSuccess(message, false);
++    }
++
++    public void sendSuccess(net.kyori.adventure.text.@Nullable Component message, boolean broadcastToOps) {
++        if (message == null) {
++            return;
++        }
++        sendSuccess(() -> io.papermc.paper.adventure.PaperAdventure.asVanilla(message), broadcastToOps);
++    }
++    // SW: Purpur end - Purpur config files
++
+     public void sendSuccess(Supplier<Component> messageSupplier, boolean allowLogging) {
+         boolean flag = this.source.acceptsSuccess() && !this.silent;
+         boolean flag1 = allowLogging && this.source.shouldInformAdmins() && !this.silent;
+diff --git a/net/minecraft/commands/Commands.java b/net/minecraft/commands/Commands.java
+index 668eb52d71d77f75c24d4840be9a6c49d96dfc34..1c5a7d30fab56693de225eb2cbcd3cfcfdd93ceb 100644
+--- a/net/minecraft/commands/Commands.java
++++ b/net/minecraft/commands/Commands.java
+@@ -44,97 +44,7 @@ import net.minecraft.network.chat.MutableComponent;
+ import net.minecraft.network.protocol.game.ClientboundCommandsPacket;
+ import net.minecraft.resources.Identifier;
+ import net.minecraft.resources.ResourceKey;
+-import net.minecraft.server.commands.AdvancementCommands;
+-import net.minecraft.server.commands.AttributeCommand;
+-import net.minecraft.server.commands.BanIpCommands;
+-import net.minecraft.server.commands.BanListCommands;
+-import net.minecraft.server.commands.BanPlayerCommands;
+-import net.minecraft.server.commands.BossBarCommands;
+-import net.minecraft.server.commands.ChaseCommand;
+-import net.minecraft.server.commands.ClearInventoryCommands;
+-import net.minecraft.server.commands.CloneCommands;
+-import net.minecraft.server.commands.DamageCommand;
+-import net.minecraft.server.commands.DataPackCommand;
+-import net.minecraft.server.commands.DeOpCommands;
+-import net.minecraft.server.commands.DebugCommand;
+-import net.minecraft.server.commands.DebugConfigCommand;
+-import net.minecraft.server.commands.DebugMobSpawningCommand;
+-import net.minecraft.server.commands.DebugPathCommand;
+-import net.minecraft.server.commands.DefaultGameModeCommands;
+-import net.minecraft.server.commands.DialogCommand;
+-import net.minecraft.server.commands.DifficultyCommand;
+-import net.minecraft.server.commands.EffectCommands;
+-import net.minecraft.server.commands.EmoteCommands;
+-import net.minecraft.server.commands.EnchantCommand;
+-import net.minecraft.server.commands.ExecuteCommand;
+-import net.minecraft.server.commands.ExperienceCommand;
+-import net.minecraft.server.commands.FetchProfileCommand;
+-import net.minecraft.server.commands.FillBiomeCommand;
+-import net.minecraft.server.commands.FillCommand;
+-import net.minecraft.server.commands.ForceLoadCommand;
+-import net.minecraft.server.commands.FunctionCommand;
+-import net.minecraft.server.commands.GameModeCommand;
+-import net.minecraft.server.commands.GameRuleCommand;
+-import net.minecraft.server.commands.GiveCommand;
+-import net.minecraft.server.commands.HelpCommand;
+-import net.minecraft.server.commands.ItemCommands;
+-import net.minecraft.server.commands.JfrCommand;
+-import net.minecraft.server.commands.KickCommand;
+-import net.minecraft.server.commands.KillCommand;
+-import net.minecraft.server.commands.ListPlayersCommand;
+-import net.minecraft.server.commands.LocateCommand;
+-import net.minecraft.server.commands.LootCommand;
+-import net.minecraft.server.commands.MsgCommand;
+-import net.minecraft.server.commands.OpCommand;
+-import net.minecraft.server.commands.PardonCommand;
+-import net.minecraft.server.commands.PardonIpCommand;
+-import net.minecraft.server.commands.ParticleCommand;
+-import net.minecraft.server.commands.PerfCommand;
+-import net.minecraft.server.commands.PlaceCommand;
+-import net.minecraft.server.commands.PlaySoundCommand;
+-import net.minecraft.server.commands.PublishCommand;
+-import net.minecraft.server.commands.RaidCommand;
+-import net.minecraft.server.commands.RandomCommand;
+-import net.minecraft.server.commands.RecipeCommand;
+-import net.minecraft.server.commands.ReloadCommand;
+-import net.minecraft.server.commands.ReturnCommand;
+-import net.minecraft.server.commands.RideCommand;
+-import net.minecraft.server.commands.RotateCommand;
+-import net.minecraft.server.commands.SaveAllCommand;
+-import net.minecraft.server.commands.SaveOffCommand;
+-import net.minecraft.server.commands.SaveOnCommand;
+-import net.minecraft.server.commands.SayCommand;
+-import net.minecraft.server.commands.ScheduleCommand;
+-import net.minecraft.server.commands.ScoreboardCommand;
+-import net.minecraft.server.commands.SeedCommand;
+-import net.minecraft.server.commands.ServerPackCommand;
+-import net.minecraft.server.commands.SetBlockCommand;
+-import net.minecraft.server.commands.SetPlayerIdleTimeoutCommand;
+-import net.minecraft.server.commands.SetSpawnCommand;
+-import net.minecraft.server.commands.SetWorldSpawnCommand;
+-import net.minecraft.server.commands.SpawnArmorTrimsCommand;
+-import net.minecraft.server.commands.SpectateCommand;
+-import net.minecraft.server.commands.SpreadPlayersCommand;
+-import net.minecraft.server.commands.StopCommand;
+-import net.minecraft.server.commands.StopSoundCommand;
+-import net.minecraft.server.commands.StopwatchCommand;
+-import net.minecraft.server.commands.SummonCommand;
+-import net.minecraft.server.commands.TagCommand;
+-import net.minecraft.server.commands.TeamCommand;
+-import net.minecraft.server.commands.TeamMsgCommand;
+-import net.minecraft.server.commands.TeleportCommand;
+-import net.minecraft.server.commands.TellRawCommand;
+-import net.minecraft.server.commands.TickCommand;
+-import net.minecraft.server.commands.TimeCommand;
+-import net.minecraft.server.commands.TitleCommand;
+-import net.minecraft.server.commands.TransferCommand;
+-import net.minecraft.server.commands.TriggerCommand;
+-import net.minecraft.server.commands.VersionCommand;
+-import net.minecraft.server.commands.WardenSpawnTrackerCommand;
+-import net.minecraft.server.commands.WaypointCommand;
+-import net.minecraft.server.commands.WeatherCommand;
+-import net.minecraft.server.commands.WhitelistCommand;
+-import net.minecraft.server.commands.WorldBorderCommand;
++import net.minecraft.server.commands.*;
+ import net.minecraft.server.commands.data.DataCommands;
+ import net.minecraft.server.level.ServerPlayer;
+ import net.minecraft.server.permissions.PermissionCheck;
+@@ -226,6 +136,7 @@ public class Commands {
+         LootCommand.register(this.dispatcher, context);
+         MsgCommand.register(this.dispatcher);
+         ParticleCommand.register(this.dispatcher, context);
++        PingCommand.register(this.dispatcher); // SW: Purpur - Add ping command
+         PlaceCommand.register(this.dispatcher);
+         PlaySoundCommand.register(this.dispatcher);
+         RandomCommand.register(this.dispatcher);
+diff --git a/net/minecraft/server/commands/PingCommand.java b/net/minecraft/server/commands/PingCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..28f37d586112589385f6cda4f6186cc387da703a
+--- /dev/null
++++ b/net/minecraft/server/commands/PingCommand.java
+@@ -0,0 +1,36 @@
++package net.minecraft.server.commands;
++
++// SW: Purpur start - Add ping command
++
++import com.mojang.brigadier.CommandDispatcher;
++import net.minecraft.commands.CommandSourceStack;
++import net.minecraft.commands.Commands;
++import net.minecraft.commands.arguments.EntityArgument;
++import net.minecraft.server.level.ServerPlayer;
++import net.minecraft.server.permissions.Permissions;
++
++import java.util.Collection;
++import java.util.Collections;
++
++public class PingCommand {
++    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
++        dispatcher.register(Commands.literal("ping")
++                .requires((listener) -> listener.hasPermission(Permissions.COMMANDS_GAMEMASTER, "bukkit.command.ping"))
++                .executes((context) -> execute(context.getSource(), Collections.singleton(context.getSource().getPlayerOrException())))
++                .then(Commands.argument("targets", EntityArgument.players())
++                        .requires(listener -> listener.hasPermission(Permissions.COMMANDS_GAMEMASTER, "bukkit.command.ping.other"))
++                        .executes((context) -> execute(context.getSource(), EntityArgument.getPlayers(context, "targets")))
++                )
++        );
++    }
++
++    private static int execute(CommandSourceStack sender, Collection<ServerPlayer> targets) {
++        for (ServerPlayer player : targets) {
++            String output = String.format("<green>%s's ping is %sms", player.getGameProfile().name(), player.connection.latency());
++            sender.sendSuccess(output, false);
++        }
++        return targets.size();
++    }
++}
++
++// SW: Purpur end - Add ping command
