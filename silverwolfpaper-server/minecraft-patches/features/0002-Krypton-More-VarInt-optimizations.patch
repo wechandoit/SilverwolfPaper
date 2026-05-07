@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Wed, 6 May 2026 23:37:44 -0400
+Subject: [PATCH] Krypton: More VarInt optimizations
+
+
+diff --git a/net/minecraft/network/VarInt.java b/net/minecraft/network/VarInt.java
+index 1428ce80e8316a24cfca7b6aafdea8588a5a790e..9aa002d6e3959e536a38003f926988f75d76da76 100644
+--- a/net/minecraft/network/VarInt.java
++++ b/net/minecraft/network/VarInt.java
+@@ -65,13 +65,33 @@ public class VarInt {
+         return output;
+     }
+     public static ByteBuf writeSlow(final ByteBuf output, int value) {
+-        // Paper end - Optimize VarInts
+-        while ((value & -128) != 0) {
+-            output.writeByte(value & DATA_BITS_MASK | CONTINUATION_BIT_MASK);
+-            value >>>= DATA_BITS_PER_BYTE;
++        // Ported VarInt optimization (See https://steinborn.me/posts/performance/how-fast-can-you-write-a-varint/)
++        if ((value & (0xFFFFFFFF << 7)) == 0) {
++            output.writeByte(value);
++        } else if ((value & (0xFFFFFFFF << 14)) == 0) {
++            int w = (value & 0x7F | 0x80) << 8 | (value >>> 7);
++            output.writeShort(w);
++        } else if ((value & (0xFFFFFFFF << 21)) == 0) {
++            int w = (value & 0x7F | 0x80) << 16
++                  | ((value >>> 7) & 0x7F | 0x80) << 8
++                  | (value >>> 14);
++            output.writeMedium(w);
++        } else if ((value & (0xFFFFFFFF << 28)) == 0) {
++            int w = (value & 0x7F | 0x80) << 24
++                  | ((value >>> 7) & 0x7F | 0x80) << 16
++                  | ((value >>> 14) & 0x7F | 0x80) << 8
++                  | (value >>> 21);
++            output.writeInt(w);
++        } else {
++            int w = (value & 0x7F | 0x80) << 24
++                  | ((value >>> 7) & 0x7F | 0x80) << 16
++                  | ((value >>> 14) & 0x7F | 0x80) << 8
++                  | ((value >>> 21) & 0x7F | 0x80);
++            output.writeInt(w);
++            output.writeByte(value >>> 28);
+         }
+ 
+-        output.writeByte(value);
+         return output;
++        // Paper end - Optimize VarInts
+     }
+ }

@@ -1,0 +1,112 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Thu, 7 May 2026 00:30:53 -0400
+Subject: [PATCH] Lithium: math.sine_lut
+
+
+diff --git a/net/minecraft/util/Mth.java b/net/minecraft/util/Mth.java
+index 64d5190c68ff7a08d15762e958344813a7336bba..fca3fcd158487ab29d0660009fcb1cbeff64de63 100644
+--- a/net/minecraft/util/Mth.java
++++ b/net/minecraft/util/Mth.java
+@@ -7,6 +7,7 @@ import java.util.stream.IntStream;
+ import net.minecraft.core.Vec3i;
+ import net.minecraft.world.phys.AABB;
+ import net.minecraft.world.phys.Vec3;
++import net.wechandoit.CompactSineLUT;
+ import org.apache.commons.lang3.math.Fraction;
+ import org.apache.commons.lang3.math.NumberUtils;
+ import org.joml.Quaternionf;
+@@ -31,7 +32,7 @@ public class Mth {
+     private static final int SIN_MASK = 65535;
+     private static final int COS_OFFSET = 16384;
+     private static final double SIN_SCALE = 10430.378350470453;
+-    private static final float[] SIN = Util.make(new float[65536], sin -> {
++    public static final float[] SIN = Util.make(new float[65536], sin -> { // SW - Lithium: math.sine_lut
+         for (int i = 0; i < sin.length; i++) {
+             sin[i] = (float)Math.sin(i / 10430.378350470453);
+         }
+@@ -47,11 +48,11 @@ public class Mth {
+     private static final double[] COS_TAB = new double[257];
+ 
+     public static float sin(final double i) {
+-        return SIN[(int)((long)(i * 10430.378350470453) & 65535L)];
++        return CompactSineLUT.sin(i); // SW - Lithium: math.sine_lut
+     }
+ 
+     public static float cos(final double i) {
+-        return SIN[(int)((long)(i * 10430.378350470453 + 16384.0) & 65535L)];
++        return CompactSineLUT.cos(i); // SW - Lithium: math.sine_lut
+     }
+ 
+     public static float sqrt(final float x) {
+diff --git a/net/wechandoit/CompactSineLUT.java b/net/wechandoit/CompactSineLUT.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b786f3535b6b208322ba78858215c932cf3b6082
+--- /dev/null
++++ b/net/wechandoit/CompactSineLUT.java
+@@ -0,0 +1,64 @@
++package net.wechandoit;
++
++import net.minecraft.util.Mth;
++
++public class CompactSineLUT {
++    private static final int[] SINE_TABLE_INT = new int[16384 + 1];
++    private static final float SINE_TABLE_MIDPOINT;
++
++    static {
++        // Copy the sine table, covering to raw int bits
++        for (int i = 0; i < SINE_TABLE_INT.length; i++) {
++            SINE_TABLE_INT[i] = Float.floatToRawIntBits(Mth.SIN[i]);
++        }
++
++        SINE_TABLE_MIDPOINT = Mth.SIN[Mth.SIN.length / 2];
++
++        // Test that the lookup table is correct during runtime
++        for (int i = 0; i < Mth.SIN.length; i++) {
++            float expected = Mth.SIN[i];
++            float value = lookup(i);
++
++            if (expected != value) {
++                throw new IllegalArgumentException(String.format("LUT error at index %d (expected: %s, found: %s)", i, expected, value));
++            }
++        }
++    }
++
++    // [VanillaCopy] MathHelper#sin(float)
++    public static float sin(double f) {
++        return lookup((int) ((long) (f * 10430.38) & 0xFFFF));
++    }
++
++    // [VanillaCopy] MathHelper#cos(float)
++    public static float cos(double f) {
++        return lookup((int) ((long) (f * 10430.38 + 16384.0) & 0xFFFF));
++    }
++
++    private static float lookup(int index) {
++        // A special case... Is there some way to eliminate this?
++        if (index == 32768) {
++            return SINE_TABLE_MIDPOINT;
++        }
++
++        // Trigonometric identity: sin(-x) = -sin(x)
++        // Given a domain of 0 <= x <= 2*pi, just negate the value if x > pi.
++        // This allows the sin table size to be halved.
++        int neg = (index & 0x8000) << 16;
++
++        // All bits set if (pi/2 <= x), none set otherwise
++        // Extracts the 15th bit from 'half'
++        int mask = (index << 17) >> 31;
++
++        // Trigonometric identity: sin(x) = sin(pi/2 - x)
++        int pos = (0x8001 & mask) + (index ^ mask);
++
++        // Wrap the position in the table. Moving this down to immediately before the array access
++        // seems to help the Hotspot compiler optimize the bit math better.
++        pos &= 0x7fff;
++
++        // Fetch the corresponding value from the LUT and invert the sign bit as needed
++        // This directly manipulate the sign bit on the float bits to simplify logic
++        return Float.intBitsToFloat(SINE_TABLE_INT[pos] ^ neg);
++    }
++}
+\ No newline at end of file

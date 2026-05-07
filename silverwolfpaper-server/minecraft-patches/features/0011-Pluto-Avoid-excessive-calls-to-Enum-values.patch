@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Thu, 7 May 2026 01:01:00 -0400
+Subject: [PATCH] Pluto - Avoid excessive calls to Enum#values
+
+
+diff --git a/net/minecraft/core/Direction.java b/net/minecraft/core/Direction.java
+index b57aa08035bd3b643de45128d28e4f8442f0f7d5..d288e8994a26039b2fa899afb2c5e41d3d99bbcb 100644
+--- a/net/minecraft/core/Direction.java
++++ b/net/minecraft/core/Direction.java
+@@ -56,7 +56,7 @@ public enum Direction implements StringRepresentable, ca.spottedleaf.moonrise.pa
+     private final Vec3i normal;
+     private final Vec3 normalVec3;
+     private final Vector3fc normalVec3f;
+-    private static final Direction[] VALUES = values();
++    public static final Direction[] VALUES = values(); // SW: Pluto - Avoid excessive calls to Enum#values
+     private static final Direction[] BY_3D_DATA = Arrays.stream(VALUES).sorted(Comparator.comparingInt(d -> d.data3d)).toArray(Direction[]::new);
+     private static final Direction[] BY_2D_DATA = Arrays.stream(VALUES)
+         .filter(d -> d.getAxis().isHorizontal())
+diff --git a/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java b/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
+index 73bc55906e2e0b60b34551a9fc76470b952930ce..3dc1fa610f6bfe8e707afcc25ff4e82969c1e00a 100644
+--- a/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
++++ b/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
+@@ -37,7 +37,7 @@ public class DefaultRedstoneWireEvaluator extends RedstoneWireEvaluator {
+             Set<BlockPos> toUpdate = Sets.newHashSet();
+             toUpdate.add(pos);
+ 
+-            for (Direction direction : Direction.values()) {
++            for (Direction direction : Direction.VALUES) { // SW: Pluto - Avoid excessive calls to Enum#values
+                 toUpdate.add(pos.relative(direction));
+             }
+ 
+diff --git a/net/minecraft/world/level/redstone/Orientation.java b/net/minecraft/world/level/redstone/Orientation.java
+index 70f410dd49abb793a8c92bdd0bbf8d16ad0ccd5c..e35a1a15302265a3c76cc1a0ba3d57a4fdc75ec7 100644
+--- a/net/minecraft/world/level/redstone/Orientation.java
++++ b/net/minecraft/world/level/redstone/Orientation.java
+@@ -135,7 +135,7 @@ public class Orientation {
+                 self.withSideBias.put(sideBias, generateContext(new Orientation(self.up, self.front, sideBias), lookup));
+             }
+ 
+-            for (Direction facing : Direction.values()) {
++            for (Direction facing : Direction.VALUES) { // SW: Pluto - Avoid excessive calls to Enum#values
+                 Direction up = self.up;
+                 if (facing == self.up) {
+                     up = self.front.getOpposite();
+@@ -148,7 +148,7 @@ public class Orientation {
+                 self.withFront.put(facing, generateContext(new Orientation(up, facing, self.sideBias), lookup));
+             }
+ 
+-            for (Direction facing : Direction.values()) {
++            for (Direction facing : Direction.VALUES) { // SW: Pluto - Avoid excessive calls to Enum#values
+                 Direction front = self.front;
+                 if (facing == self.front) {
+                     front = self.up.getOpposite();

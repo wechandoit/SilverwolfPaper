@@ -1,0 +1,228 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Thu, 7 May 2026 00:58:12 -0400
+Subject: [PATCH] Leaf: fast bit radix sort
+
+
+diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
+index d8084dcdb79b64feea6590f6e989b2b267a8fe38..a81145abfd17b02f8332c794b60fdee492520edb 100644
+--- a/net/minecraft/server/level/ServerLevel.java
++++ b/net/minecraft/server/level/ServerLevel.java
+@@ -982,6 +982,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
+     }
+ 
+     // Paper start - optimise random ticking
++    public final net.wechandoit.FastBitRadixSort fastBitRadixSort = new net.wechandoit.FastBitRadixSort(); // SW: Leaf - fast bit radix sort
+     private final ca.spottedleaf.moonrise.common.util.SimpleThreadUnsafeRandom simpleRandom = new ca.spottedleaf.moonrise.common.util.SimpleThreadUnsafeRandom(net.minecraft.world.level.levelgen.RandomSupport.generateUniqueSeed());
+ 
+     private void optimiseRandomTick(final LevelChunk chunk, final int tickSpeed) {
+diff --git a/net/minecraft/world/entity/ai/sensing/NearestItemSensor.java b/net/minecraft/world/entity/ai/sensing/NearestItemSensor.java
+index 8aeea55380462421cde43afb4b2fb0ce44b65195..714d16229071db151035fdc894cf4edcc8d920d3 100644
+--- a/net/minecraft/world/entity/ai/sensing/NearestItemSensor.java
++++ b/net/minecraft/world/entity/ai/sensing/NearestItemSensor.java
+@@ -15,6 +15,7 @@ public class NearestItemSensor extends Sensor<Mob> {
+     private static final long XZ_RANGE = 32L;
+     private static final long Y_RANGE = 16L;
+     public static final int MAX_DISTANCE_TO_WANTED_ITEM = 32;
++    private static final double MAX_DIST_SQ = (double) MAX_DISTANCE_TO_WANTED_ITEM * MAX_DISTANCE_TO_WANTED_ITEM; // SW: Leaf - quick sort
+ 
+     @Override
+     public Set<MemoryModuleType<?>> requires() {
+@@ -24,7 +25,16 @@ public class NearestItemSensor extends Sensor<Mob> {
+     @Override
+     protected void doTick(final ServerLevel level, final Mob body) {
+         Brain<?> brain = body.getBrain();
+-        List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, body.getBoundingBox().inflate(32.0, 16.0, 32.0), item -> item.closerThan(body, MAX_DISTANCE_TO_WANTED_ITEM) && body.wantsToPickUp(level, item.getItem())); // Paper - Perf: Move predicate into getEntities
++        // SW: Leaf start - fast bit radix sort
++        net.minecraft.core.Position pos = body.position();
++        double x = pos.x();
++        double y = pos.y();
++        double z = pos.z();
++        net.minecraft.world.phys.AABB boundingBox = body.getBoundingBox().inflate(32.0, 16.0, 32.0);
++        it.unimi.dsi.fastutil.objects.ObjectArrayList<ItemEntity> items = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>();
++        ((ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemLevel) level).moonrise$getEntityLookup().getEntities(ItemEntity.class, null, boundingBox, items, (ItemEntity itemEntity) -> itemEntity.distanceToSqr(x, y, z) < MAX_DIST_SQ && body.wantsToPickUp(level, itemEntity.getItem())); // Paper - Perf: Move predicate into getEntities
++        level.fastBitRadixSort.sort(items.elements(), items.size(), pos);
++        // SW: Leaf end - fast bit radix sort
+         items.sort(Comparator.comparingDouble(body::distanceToSqr));
+         // Paper start - Perf: remove streams from hot code
+         ItemEntity nearest = null;
+diff --git a/net/minecraft/world/entity/ai/sensing/NearestLivingEntitySensor.java b/net/minecraft/world/entity/ai/sensing/NearestLivingEntitySensor.java
+index 3578ece216827fd5d8c1206c689fc608e97b50df..f95d46243fe8f420f89d77d55b36a95a2f4e2a73 100644
+--- a/net/minecraft/world/entity/ai/sensing/NearestLivingEntitySensor.java
++++ b/net/minecraft/world/entity/ai/sensing/NearestLivingEntitySensor.java
+@@ -17,7 +17,11 @@ public class NearestLivingEntitySensor<T extends LivingEntity> extends Sensor<T>
+     protected void doTick(final ServerLevel level, final T body) {
+         double followRange = body.getAttributeValue(Attributes.FOLLOW_RANGE);
+         AABB boundingBox = body.getBoundingBox().inflate(followRange, followRange, followRange);
+-        List<LivingEntity> livingEntities = level.getEntitiesOfClass(LivingEntity.class, boundingBox, mob -> mob != body && mob.isAlive());
++        // SW: Leaf start - fast bit radix sort
++        it.unimi.dsi.fastutil.objects.ObjectArrayList<LivingEntity> livingEntities = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>();
++        ((ca.spottedleaf.moonrise.patches.chunk_system.level.ChunkSystemLevel) level).moonrise$getEntityLookup().getEntities(LivingEntity.class, body, boundingBox, livingEntities, LivingEntity::isAlive);
++        level.fastBitRadixSort.sort(livingEntities.elements(), livingEntities.size(), body.position());
++        // SW: Leaf end - fast bit radix sort
+         livingEntities.sort(Comparator.comparingDouble(body::distanceToSqr));
+         Brain<?> brain = body.getBrain();
+         brain.setMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES, livingEntities);
+diff --git a/net/minecraft/world/entity/ai/sensing/PlayerSensor.java b/net/minecraft/world/entity/ai/sensing/PlayerSensor.java
+index 22f58ba0bce5db69c7bcea76d40bac6079f5581a..49a36aeb28f1aa1e8ea95d9cb0d1d8f743985caf 100644
+--- a/net/minecraft/world/entity/ai/sensing/PlayerSensor.java
++++ b/net/minecraft/world/entity/ai/sensing/PlayerSensor.java
+@@ -26,17 +26,45 @@ public class PlayerSensor extends Sensor<LivingEntity> {
+ 
+     @Override
+     protected void doTick(final ServerLevel level, final LivingEntity body) {
+-        List<Player> players = level.players()
+-            .stream()
+-            .filter(EntitySelector.NO_SPECTATORS)
+-            .filter(player -> body.closerThan(player, this.getFollowDistance(body)))
+-            .sorted(Comparator.comparingDouble(body::distanceToSqr))
+-            .collect(Collectors.toList());
++        // SW: Leaf start - Remove stream in PlayerSensor + fast bit radix sort
++        it.unimi.dsi.fastutil.objects.ObjectArrayList<Player> players = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>();
++        double distance = this.getFollowDistance(body);
++        double distSq = distance * distance;
++        net.minecraft.world.phys.Vec3 vec3 = body.position();
++        double tx = vec3.x();
++        double ty = vec3.y();
++        double tz = vec3.z();
++        for (Player serverPlayer : level.players()) {
++            if (!EntitySelector.NO_SPECTATORS.test(serverPlayer)) {
++                continue;
++            }
++            if (serverPlayer.distanceToSqr(tx, ty, tz) >= distSq) {
++                continue;
++            }
++
++            players.add(serverPlayer);
++        }
++        level.fastBitRadixSort.sort(players.elements(), players.size(), vec3);
++        // SW: Leaf end - Remove stream in PlayerSensor + fast bit radix sort
+         Brain<?> brain = body.getBrain();
+         brain.setMemory(MemoryModuleType.NEAREST_PLAYERS, players);
+-        List<Player> visiblePlayers = players.stream().filter(livingEntity -> isEntityTargetable(level, body, livingEntity)).collect(Collectors.toList());
++        // SW: Leaf start - Remove stream in PlayerSensor
++        List<Player> visiblePlayers = new java.util.ArrayList<>(players.size());
++        for (Player player : players) {
++            if (isEntityTargetable(level, body, player)) {
++                visiblePlayers.add(player);
++            }
++        }
++        // SW: Leaf end - Remove stream in PlayerSensor
+         brain.setMemory(MemoryModuleType.NEAREST_VISIBLE_PLAYER, visiblePlayers.isEmpty() ? null : visiblePlayers.get(0));
+-        List<Player> visibleAttackablePlayers = visiblePlayers.stream().filter(livingEntity -> isEntityAttackable(level, body, livingEntity)).toList();
++        // SW: Leaf start - Remove stream in PlayerSensor
++        List<Player> visibleAttackablePlayers = new java.util.ArrayList<>(visiblePlayers.size());
++        for (Player player : visiblePlayers) {
++            if (isEntityAttackable(level, body, player)) {
++                visibleAttackablePlayers.add(player);
++            }
++        }
++        // SW: Leaf end - Remove stream in PlayerSensor
+         brain.setMemory(MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYERS, visibleAttackablePlayers);
+         brain.setMemory(MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER, visibleAttackablePlayers.isEmpty() ? null : visibleAttackablePlayers.get(0));
+     }
+diff --git a/net/wechandoit/FastBitRadixSort.java b/net/wechandoit/FastBitRadixSort.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..29632e3bf4b9444adde9309bd942b704738ae228
+--- /dev/null
++++ b/net/wechandoit/FastBitRadixSort.java
+@@ -0,0 +1,99 @@
++package net.wechandoit;
++
++import net.minecraft.world.entity.Entity;
++
++public final class FastBitRadixSort {
++
++    private static final int SMALL_ARRAY_THRESHOLD = 6;
++    private static final long[] LONGS = new long[0];
++    private long[] bitsBuffer = LONGS;
++
++    public void sort(Object[] entities, int size, net.minecraft.core.Position target) {
++        if (size <= 1) {
++            return;
++        }
++
++        if (this.bitsBuffer.length < size) {
++            this.bitsBuffer = new long[size];
++        }
++        double tx = target.x();
++        double ty = target.y();
++        double tz = target.z();
++        for (int i = 0; i < size; i++) {
++            this.bitsBuffer[i] = Double.doubleToRawLongBits(((Entity) entities[i]).distanceToSqr(tx, ty, tz));
++        }
++
++        fastRadixSort(entities, this.bitsBuffer, 0, size - 1, 62);
++    }
++
++    private static void fastRadixSort(
++            Object[] ents,
++            long[] bits,
++            int low,
++            int high,
++            int bit
++    ) {
++        if (bit < 0 || low >= high) {
++            return;
++        }
++
++        if (high - low <= SMALL_ARRAY_THRESHOLD) {
++            insertionSort(ents, bits, low, high);
++            return;
++        }
++
++        int i = low;
++        int j = high;
++        final long mask = 1L << bit;
++
++        while (i <= j) {
++            while (i <= j && (bits[i] & mask) == 0) {
++                i++;
++            }
++            while (i <= j && (bits[j] & mask) != 0) {
++                j--;
++            }
++            if (i < j) {
++                swap(ents, bits, i++, j--);
++            }
++        }
++
++        if (low < j) {
++            fastRadixSort(ents, bits, low, j, bit - 1);
++        }
++        if (i < high) {
++            fastRadixSort(ents, bits, i, high, bit - 1);
++        }
++    }
++
++    private static void insertionSort(
++            Object[] ents,
++            long[] bits,
++            int low,
++            int high
++    ) {
++        for (int i = low + 1; i <= high; i++) {
++            int j = i;
++            Object currentEntity = ents[j];
++            long currentBits = bits[j];
++
++            while (j > low && bits[j - 1] > currentBits) {
++                ents[j] = ents[j - 1];
++                bits[j] = bits[j - 1];
++                j--;
++            }
++            ents[j] = currentEntity;
++            bits[j] = currentBits;
++        }
++    }
++
++    private static void swap(Object[] ents, long[] bits, int a, int b) {
++        Object tempEntity = ents[a];
++        ents[a] = ents[b];
++        ents[b] = tempEntity;
++
++        long tempBits = bits[a];
++        bits[a] = bits[b];
++        bits[b] = tempBits;
++    }
++}

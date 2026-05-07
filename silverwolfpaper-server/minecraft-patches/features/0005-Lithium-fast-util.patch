@@ -1,0 +1,91 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Thu, 7 May 2026 00:21:13 -0400
+Subject: [PATCH] Lithium: fast util
+
+
+diff --git a/net/minecraft/core/Direction.java b/net/minecraft/core/Direction.java
+index 240fb1346b721e4aaf8517b01fa205760cee4bbd..b57aa08035bd3b643de45128d28e4f8442f0f7d5 100644
+--- a/net/minecraft/core/Direction.java
++++ b/net/minecraft/core/Direction.java
+@@ -77,6 +77,12 @@ public enum Direction implements StringRepresentable, ca.spottedleaf.moonrise.pa
+     private int stepY;
+     private int stepZ;
+ 
++    // SW start - Lithium - fast util
++    public static final Direction[] VERTICAL = {Direction.DOWN, Direction.UP};
++    public static final Direction[] HORIZONTAL = {Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH};
++    // SW end - Lithium - fast util
++
++
+     private Quaternionf getRotationUncached() {
+         switch ((Direction)(Object)this) {
+             case DOWN: {
+@@ -223,7 +229,7 @@ public enum Direction implements StringRepresentable, ca.spottedleaf.moonrise.pa
+     }
+ 
+     public Direction getOpposite() {
+-        return this.opposite; // Paper - optimise collisions
++        return VALUES[this.oppositeIndex]; // SW - Lithium - fast util
+     }
+ 
+     public Direction getClockWise(final Direction.Axis axis) {
+@@ -355,7 +361,7 @@ public enum Direction implements StringRepresentable, ca.spottedleaf.moonrise.pa
+     }
+ 
+     public static Direction getRandom(final RandomSource random) {
+-        return Util.getRandom(VALUES, random);
++        return VALUES[random.nextInt(VALUES.length)]; // SW - Lithium - fast util
+     }
+ 
+     public static Direction getApproximateNearest(final double dx, final double dy, final double dz) {
+diff --git a/net/minecraft/world/phys/AABB.java b/net/minecraft/world/phys/AABB.java
+index 259a19cbcf9a42c5f48e5d03448729283baf36a7..6578759dfef47415ee3e9a83000fed17b8ad7cdb 100644
+--- a/net/minecraft/world/phys/AABB.java
++++ b/net/minecraft/world/phys/AABB.java
+@@ -19,6 +19,16 @@ public class AABB {
+     public final double maxY;
+     public final double maxZ;
+ 
++    // SW start - Lithium - fast util
++    static {
++        assert Direction.Axis.X.ordinal() == 0;
++        assert Direction.Axis.Y.ordinal() == 1;
++        assert Direction.Axis.Z.ordinal() == 2;
++        assert Direction.Axis.values().length == 3;
++    }
++    // SW end - Lithium - fast util
++
++
+     public AABB(final double minX, final double minY, final double minZ, final double maxX, final double maxY, final double maxZ) {
+         this.minX = Math.min(minX, maxX);
+         this.minY = Math.min(minY, maxY);
+@@ -80,11 +90,26 @@ public class AABB {
+     }
+ 
+     public double min(final Direction.Axis axis) {
+-        return axis.choose(this.minX, this.minY, this.minZ);
++        // SW start - Lithium - fast util
++        return switch (axis.ordinal()) {
++            case 0 -> this.minX;
++            case 1 -> this.minY;
++            case 2 -> this.minZ;
++            default -> throw new IllegalArgumentException();
++        };
++        // SW end - Lithium - fast util
++
+     }
+ 
+     public double max(final Direction.Axis axis) {
+-        return axis.choose(this.maxX, this.maxY, this.maxZ);
++        // SW start - Lithium - fast util
++        return switch (axis.ordinal()) {
++            case 0 -> this.maxX;
++            case 1 -> this.maxY;
++            case 2 -> this.maxZ;
++            default -> throw new IllegalArgumentException();
++        };
++        // SW end - Lithium - fast util
+     }
+ 
+     @Override
