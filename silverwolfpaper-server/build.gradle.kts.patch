@@ -22,9 +22,9 @@
 +
 +    activeFork = silverwolfpaper
  
-     spigot {
-         enabled = true
-@@ -117,12 +_,18 @@
+ //    updatingMinecraft {
+ //        oldPaperCommit = "7e80cef5198561d0db53406127e5b8bc7af51577"
+@@ -99,12 +_,18 @@
  
  sourceSets {
      main {
@@ -47,16 +47,16 @@
      }
  }
  val log4jPlugins = sourceSets.create("log4jPlugins") {
-@@ -150,7 +_,7 @@
+@@ -132,7 +_,7 @@
  }
  
  dependencies {
 -    implementation(project(":aspaper-api")) //ASP
 +    implementation(project(":silverwolfpaper-api")) //ASP
      implementation(project(":core")) //ASP
-     implementation("ca.spottedleaf:concurrentutil:0.0.8")
+     implementation("ca.spottedleaf:concurrentutil:0.0.10")
      implementation("org.jline:jline-terminal-ffm:3.27.1") // use ffm on java 22+
-@@ -222,14 +_,14 @@
+@@ -195,14 +_,14 @@
          val gitBranch = git.exec(providers, "rev-parse", "--abbrev-ref", "HEAD").get().trim()
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
