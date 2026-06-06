@@ -5,7 +5,7 @@ Subject: [PATCH] Lithium: redstone wire optimizations
 
 
 diff --git a/net/minecraft/world/level/block/RedStoneWireBlock.java b/net/minecraft/world/level/block/RedStoneWireBlock.java
-index ed471efa3ab705de62aec81c3940c1b9c5acdbc5..3872b0dc361216068025ae2d83d65e3d513de2aa 100644
+index 0e285f38d282b29f625c5578ee1871a6c2b8585d..be86aac47617206d95e1e468de4ca19c11d3cbab 100644
 --- a/net/minecraft/world/level/block/RedStoneWireBlock.java
 +++ b/net/minecraft/world/level/block/RedStoneWireBlock.java
 @@ -30,12 +30,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -22,7 +22,7 @@ index ed471efa3ab705de62aec81c3940c1b9c5acdbc5..3872b0dc361216068025ae2d83d65e3d
  import net.minecraft.world.phys.BlockHitResult;
  import net.minecraft.world.phys.shapes.CollisionContext;
  import net.minecraft.world.phys.shapes.Shapes;
-@@ -338,10 +333,7 @@ public class RedStoneWireBlock extends Block {
+@@ -334,10 +329,7 @@ public class RedStoneWireBlock extends Block {
      }
  
      public int getBlockSignal(final Level level, final BlockPos pos) {
@@ -35,10 +35,10 @@ index ed471efa3ab705de62aec81c3940c1b9c5acdbc5..3872b0dc361216068025ae2d83d65e3d
  
      private void checkCornerChangeAt(final Level level, final BlockPos pos) {
 diff --git a/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java b/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
-index afdcbb9e5a4c859d82bfb33a1d253514c17eed39..73bc55906e2e0b60b34551a9fc76470b952930ce 100644
+index 2540a39f40827ff864a9b3e8bec5cb7b43dbcebd..bfa6f2420677e4e55c22b473ea23e91e159ed92f 100644
 --- a/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
 +++ b/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
-@@ -48,7 +48,6 @@ public class DefaultRedstoneWireEvaluator extends RedstoneWireEvaluator {
+@@ -45,7 +45,6 @@ public class DefaultRedstoneWireEvaluator extends RedstoneWireEvaluator {
      }
  
      public int calculateTargetStrength(final Level level, final BlockPos pos) { // Paper - Optimize redstone

@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: wechandoit <ethanchan7981@gmail.com>
-Date: Wed, 6 May 2026 23:27:43 -0400
+Date: Thu, 4 Jun 2026 19:20:48 -0400
 Subject: [PATCH] Krypton: String encoding optimizations
 
 
 diff --git a/net/minecraft/network/Utf8String.java b/net/minecraft/network/Utf8String.java
-index 0dc473eacd6d3cf3ee5180a19b985e8c3706fe33..e17e048b97dd7c337477638bbd2b3971211f4876 100644
+index 8b778744a5f01943976f180ad340a1cbce7db506..e17e048b97dd7c337477638bbd2b3971211f4876 100644
 --- a/net/minecraft/network/Utf8String.java
 +++ b/net/minecraft/network/Utf8String.java
 @@ -33,24 +33,19 @@ public class Utf8String {
@@ -14,22 +14,22 @@ index 0dc473eacd6d3cf3ee5180a19b985e8c3706fe33..e17e048b97dd7c337477638bbd2b3971
      public static void write(final ByteBuf output, final CharSequence value, final int maxLength) {
 -        if (value.length() > maxLength) {
 -            throw new EncoderException("String too big (was " + value.length() + " characters, max " + maxLength + ")");
--        } else {
--            int maxEncodedValueLength = ByteBufUtil.utf8MaxBytes(value);
--            ByteBuf tmp = output.alloc().buffer(maxEncodedValueLength);
+-        }
 -
--            try {
--                int bytesWritten = ByteBufUtil.writeUtf8(tmp, value);
--                int maxAllowedEncodedLength = ByteBufUtil.utf8MaxBytes(maxLength);
--                if (bytesWritten > maxAllowedEncodedLength) {
--                    throw new EncoderException("String too big (was " + bytesWritten + " bytes encoded, max " + maxAllowedEncodedLength + ")");
--                }
+-        int maxEncodedValueLength = ByteBufUtil.utf8MaxBytes(value);
+-        ByteBuf tmp = output.alloc().buffer(maxEncodedValueLength);
 -
--                VarInt.write(output, bytesWritten);
--                output.writeBytes(tmp);
--            } finally {
--                tmp.release();
+-        try {
+-            int bytesWritten = ByteBufUtil.writeUtf8(tmp, value);
+-            int maxAllowedEncodedLength = ByteBufUtil.utf8MaxBytes(maxLength);
+-            if (bytesWritten > maxAllowedEncodedLength) {
+-                throw new EncoderException("String too big (was " + bytesWritten + " bytes encoded, max " + maxAllowedEncodedLength + ")");
 -            }
+-
+-            VarInt.write(output, bytesWritten);
+-            output.writeBytes(tmp);
+-        } finally {
+-            tmp.release();
 -        }
 +    	// Paper start - optimize string encoding (from krypton)
 +    	// Mojang _almost_ gets it right, but stumbles at the finish line...

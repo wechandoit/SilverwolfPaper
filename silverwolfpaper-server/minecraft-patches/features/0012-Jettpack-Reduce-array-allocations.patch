@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: wechandoit <ethanchan7981@gmail.com>
-Date: Thu, 7 May 2026 00:11:13 -0400
+Date: Sat, 6 Jun 2026 14:13:32 -0400
 Subject: [PATCH] Jettpack: Reduce array allocations
 
 
@@ -43,10 +43,10 @@ index 3f5bd8c914df5a1fda812c9286647839c69c1cd8..c8864ad1322d2dea9e8b0398195cada6
              } else {
                  this.storage = Arrays.copyOf(this.storage, this.storage.length * 2);
 diff --git a/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/server/ServerEntityLookup.java b/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/server/ServerEntityLookup.java
-index f312a7f5b1b2a777ab36b94ce7cbf3873f5e88bc..d3ac98bbf172c59339dd122cfcce1440da893ca9 100644
+index f312a7f5b1b2a777ab36b94ce7cbf3873f5e88bc..691446303492961a28183b4d2bc168cc71515dda 100644
 --- a/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/server/ServerEntityLookup.java
 +++ b/ca/spottedleaf/moonrise/patches/chunk_system/level/entity/server/ServerEntityLookup.java
-@@ -16,13 +16,12 @@ import net.minecraft.server.level.TicketType;
+@@ -16,13 +16,14 @@ import net.minecraft.server.level.TicketType;
  import net.minecraft.world.entity.Entity;
  import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
  import net.minecraft.world.level.entity.LevelCallback;
@@ -54,8 +54,8 @@ index f312a7f5b1b2a777ab36b94ce7cbf3873f5e88bc..d3ac98bbf172c59339dd122cfcce1440
  
  public final class ServerEntityLookup extends EntityLookup {
  
--    private static final Entity[] EMPTY_ENTITY_ARRAY = new Entity[0];
--
+     private static final Entity[] EMPTY_ENTITY_ARRAY = new Entity[0];
+ 
      private final ServerLevel serverWorld;
 -    public final ReferenceList<Entity> trackerEntities = new ReferenceList<>(EMPTY_ENTITY_ARRAY); // Moonrise - entity tracker
 +    public final ReferenceList<Entity> trackerEntities = new ReferenceList<>(ArrayConstants.emptyEntityArray); // Moonrise - entity tracker + SW - reduce array allocations
@@ -63,19 +63,18 @@ index f312a7f5b1b2a777ab36b94ce7cbf3873f5e88bc..d3ac98bbf172c59339dd122cfcce1440
      // Vanilla does not increment ticket timeouts if the chunk is progressing in generation. They made this change in 1.21.6 so that the ender pearl
      // ticket does not expire if the chunk fails to generate before the timeout expires. Rather than blindly adjusting the entire system behavior
 diff --git a/net/minecraft/nbt/ByteArrayTag.java b/net/minecraft/nbt/ByteArrayTag.java
-index 9f225fc9c81092d1e593acbf90e1b46141bc3dd0..34ea69af642b46171888ea7728843a0261e767ba 100644
+index 9f225fc9c81092d1e593acbf90e1b46141bc3dd0..067c1184599d444fe22c516c12c730d74e668cec 100644
 --- a/net/minecraft/nbt/ByteArrayTag.java
 +++ b/net/minecraft/nbt/ByteArrayTag.java
-@@ -5,6 +5,8 @@ import java.io.DataOutput;
+@@ -5,6 +5,7 @@ import java.io.DataOutput;
  import java.io.IOException;
  import java.util.Arrays;
  import java.util.Optional;
-+
 +import net.wechandoit.ArrayConstants;
  import org.apache.commons.lang3.ArrayUtils;
  
  public final class ByteArrayTag implements CollectionTag {
-@@ -144,7 +146,7 @@ public final class ByteArrayTag implements CollectionTag {
+@@ -144,7 +145,7 @@ public final class ByteArrayTag implements CollectionTag {
  
      @Override
      public void clear() {
@@ -85,19 +84,18 @@ index 9f225fc9c81092d1e593acbf90e1b46141bc3dd0..34ea69af642b46171888ea7728843a02
  
      @Override
 diff --git a/net/minecraft/nbt/IntArrayTag.java b/net/minecraft/nbt/IntArrayTag.java
-index ea1fe06a635601ef1e79518fb4ed3165b3da8360..b9edc628f8447cd9d4fd3abdcc178e258b27f672 100644
+index ea1fe06a635601ef1e79518fb4ed3165b3da8360..b339372329a477fa5337600ee9d412731aae9e45 100644
 --- a/net/minecraft/nbt/IntArrayTag.java
 +++ b/net/minecraft/nbt/IntArrayTag.java
-@@ -5,6 +5,8 @@ import java.io.DataOutput;
+@@ -5,6 +5,7 @@ import java.io.DataOutput;
  import java.io.IOException;
  import java.util.Arrays;
  import java.util.Optional;
-+
 +import net.wechandoit.ArrayConstants;
  import org.apache.commons.lang3.ArrayUtils;
  
  public final class IntArrayTag implements CollectionTag {
-@@ -151,7 +153,7 @@ public final class IntArrayTag implements CollectionTag {
+@@ -151,7 +152,7 @@ public final class IntArrayTag implements CollectionTag {
  
      @Override
      public void clear() {
@@ -107,19 +105,18 @@ index ea1fe06a635601ef1e79518fb4ed3165b3da8360..b9edc628f8447cd9d4fd3abdcc178e25
  
      @Override
 diff --git a/net/minecraft/nbt/LongArrayTag.java b/net/minecraft/nbt/LongArrayTag.java
-index d92f95dcb12f2deb734f71262a30bc0021af6cc5..23706619d19f9c09c160c75cd00016452eec2614 100644
+index d92f95dcb12f2deb734f71262a30bc0021af6cc5..58e8d36e59595d17929ab54aa1f603d429d3b173 100644
 --- a/net/minecraft/nbt/LongArrayTag.java
 +++ b/net/minecraft/nbt/LongArrayTag.java
-@@ -5,6 +5,8 @@ import java.io.DataOutput;
+@@ -5,6 +5,7 @@ import java.io.DataOutput;
  import java.io.IOException;
  import java.util.Arrays;
  import java.util.Optional;
-+
 +import net.wechandoit.ArrayConstants;
  import org.apache.commons.lang3.ArrayUtils;
  
  public final class LongArrayTag implements CollectionTag {
-@@ -150,7 +152,7 @@ public final class LongArrayTag implements CollectionTag {
+@@ -150,7 +151,7 @@ public final class LongArrayTag implements CollectionTag {
  
      @Override
      public void clear() {
@@ -150,7 +147,7 @@ index 5a1fcd0a552dfcebff351c408a0403a8017930c1..3693cd7a9bf2bb6adb7d6240d909b49d
      protected CipherBase(final Cipher cipher) {
          this.cipher = cipher;
 diff --git a/net/minecraft/network/chat/contents/TranslatableContents.java b/net/minecraft/network/chat/contents/TranslatableContents.java
-index 35c62bc99962feed075a02e3706496199b1acc64..66f1f08385e369bca81142c0013a5942cfe3cafb 100644
+index 9f02ae0493200e3345d3ef87ce23c1f0d7ab696a..d1361ce7554b6fb88a9cd2e16f9b965d96110a9c 100644
 --- a/net/minecraft/network/chat/contents/TranslatableContents.java
 +++ b/net/minecraft/network/chat/contents/TranslatableContents.java
 @@ -25,10 +25,11 @@ import net.minecraft.network.chat.MutableComponent;
@@ -167,7 +164,7 @@ index 35c62bc99962feed075a02e3706496199b1acc64..66f1f08385e369bca81142c0013a5942
      private static final Codec<Object> ARG_CODEC = Codec.either(PRIMITIVE_ARG_CODEC, ComponentSerialization.CODEC)
          .xmap(
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index c0873f9cec8b5877157b7f8803b617465cb0876b..d8084dcdb79b64feea6590f6e989b2b267a8fe38 100644
+index aedba9d17d32b57e2acfa9868f01411de0293980..15aa5c13e203fbfef42a6ad8a1fd373c7895a124 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
 @@ -180,6 +180,7 @@ import net.minecraft.world.phys.shapes.Shapes;
@@ -178,21 +175,20 @@ index c0873f9cec8b5877157b7f8803b617465cb0876b..d8084dcdb79b64feea6590f6e989b2b2
  import org.jspecify.annotations.Nullable;
  import org.slf4j.Logger;
  
-@@ -1400,8 +1401,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
+@@ -1411,7 +1412,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
  
      public static List<Entity> getCurrentlyTickingEntities() {
          Entity ticking = currentlyTickingEntity.get();
 -        List<Entity> ret = java.util.Arrays.asList(ticking == null ? new Entity[0] : new Entity[] { ticking });
--
 +        List<Entity> ret = java.util.Arrays.asList(ticking == null ? ArrayConstants.emptyEntityArray : new Entity[] { ticking }); // SW - reduce array allocations
+ 
          return ret;
      }
-     // Paper end - log detailed entity tick information
 diff --git a/net/minecraft/server/level/ServerPlayer.java b/net/minecraft/server/level/ServerPlayer.java
-index 06b938013f9dbee4fb3b86979d5a42f28a0ea33e..da44a53cae8e81460a54bfd054f09960ab144c03 100644
+index 60ff8173750b57aa05bb19a3dd1c744f870f59a5..de40e6b341a4925b30ff88fbfe90a8669dfbf6d6 100644
 --- a/net/minecraft/server/level/ServerPlayer.java
 +++ b/net/minecraft/server/level/ServerPlayer.java
-@@ -1229,7 +1229,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
+@@ -1205,7 +1205,7 @@ public class ServerPlayer extends Player implements ca.spottedleaf.moonrise.patc
                      this.getInventory().getNonEquipmentItems().set(i, net.minecraft.world.item.ItemStack.EMPTY);
                  }
              }
@@ -202,7 +198,7 @@ index 06b938013f9dbee4fb3b86979d5a42f28a0ea33e..da44a53cae8e81460a54bfd054f09960
                      this.getInventory().equipment.set(value, net.minecraft.world.item.ItemStack.EMPTY);
                  }
 diff --git a/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index fe6e148322e920989ac3ffc3c10de95d782265f9..6508870f5b719e910d4ec19ef6586e3e1253a1f4 100644
+index 810b352503cdf56091ec6340ad72edde238fe359..e00494070ee5dbb3d1f427f8f3d5c3adc5800624 100644
 --- a/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -160,16 +160,7 @@ import net.minecraft.util.Util;
@@ -223,17 +219,17 @@ index fe6e148322e920989ac3ffc3c10de95d782265f9..6508870f5b719e910d4ec19ef6586e3e
  import net.minecraft.world.entity.item.ItemEntity;
  import net.minecraft.world.entity.player.ChatVisiblity;
  import net.minecraft.world.entity.player.Inventory;
-@@ -2952,7 +2943,7 @@ public class ServerGamePacketListenerImpl
+@@ -2946,7 +2937,7 @@ public class ServerGamePacketListenerImpl
                              // SPIGOT-7136 - Allays
                              if (target instanceof net.minecraft.world.entity.animal.allay.Allay || target instanceof net.minecraft.world.entity.animal.equine.AbstractHorse) { // Paper - Fix horse armor desync
                                  ServerGamePacketListenerImpl.this.send(new net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket(
 -                                    target.getId(), java.util.Arrays.stream(net.minecraft.world.entity.EquipmentSlot.values())
-+                                    target.getId(), java.util.Arrays.stream(EquipmentSlot.VALUES_ARRAY) // SW - reduce array allocations
++                                        target.getId(), java.util.Arrays.stream(EquipmentSlot.VALUES_ARRAY) // SW - reduce array allocations
                                      .map((slot) -> com.mojang.datafixers.util.Pair.of(slot, ((LivingEntity) target).getItemBySlot(slot).copy()))
                                      .collect(Collectors.toList()), true)); // Paper - sanitize
                                  player.containerMenu.sendAllDataToRemote();
 diff --git a/net/minecraft/server/players/StoredUserList.java b/net/minecraft/server/players/StoredUserList.java
-index d97d79e65c672e31e408f7627189ab65f5aedc2c..41a87daeab5e3977e06ddfe465f75c4d07b38b71 100644
+index eaf8fb8a9cf94d0d16debf90e5ceda3f91c979ef..d4833f8249019cb3b67141e149556301a4d19627 100644
 --- a/net/minecraft/server/players/StoredUserList.java
 +++ b/net/minecraft/server/players/StoredUserList.java
 @@ -21,6 +21,7 @@ import java.util.Objects;
@@ -254,7 +250,7 @@ index d97d79e65c672e31e408f7627189ab65f5aedc2c..41a87daeab5e3977e06ddfe465f75c4d
  
      public boolean isEmpty() {
 diff --git a/net/minecraft/util/ZeroBitStorage.java b/net/minecraft/util/ZeroBitStorage.java
-index eb2fa32cff6824c14f865c8731df7d082122f62b..11f3811b96ffdeda0745608ad484d15c7e949a66 100644
+index 3666c3efd188508153b6482db425648e3ca77dc7..f2f25dbd2dd8cc4d4af77555959d1b20cfbb6c8a 100644
 --- a/net/minecraft/util/ZeroBitStorage.java
 +++ b/net/minecraft/util/ZeroBitStorage.java
 @@ -2,10 +2,11 @@ package net.minecraft.util;
@@ -271,10 +267,10 @@ index eb2fa32cff6824c14f865c8731df7d082122f62b..11f3811b96ffdeda0745608ad484d15c
  
      public ZeroBitStorage(final int size) {
 diff --git a/net/minecraft/world/entity/Entity.java b/net/minecraft/world/entity/Entity.java
-index 9cd46a8619e575a865f4d00ce71d249c9b028b2f..9344a50660887e37b51a5d9215d121b49db29572 100644
+index 74a2b3dcd303b25e9c26f3e4d4220b390b32f1d5..9b3d19b59a38ef479685e7987242d44a69c32092 100644
 --- a/net/minecraft/world/entity/Entity.java
 +++ b/net/minecraft/world/entity/Entity.java
-@@ -3179,7 +3179,7 @@ public abstract class Entity
+@@ -3178,7 +3178,7 @@ public abstract class Entity
      }
  
      private boolean attemptToShearEquipment(final Player player, final InteractionHand hand, final ItemStack heldItem, final Mob target) {
@@ -284,7 +280,7 @@ index 9cd46a8619e575a865f4d00ce71d249c9b028b2f..9344a50660887e37b51a5d9215d121b4
              Equippable equippable = itemStack.get(DataComponents.EQUIPPABLE);
              if (equippable != null
 diff --git a/net/minecraft/world/entity/EquipmentSlot.java b/net/minecraft/world/entity/EquipmentSlot.java
-index 33d296e826093ce3afc9f1edaa6ccbd6c25a5a7d..bf9787e82b408961ea6eae9529aa35218482b63e 100644
+index ffb5f07697e9f1fb07f83ea4739c6b9d5a622892..0c69fb7970090a8648f2b7c09f68b219f8f83252 100644
 --- a/net/minecraft/world/entity/EquipmentSlot.java
 +++ b/net/minecraft/world/entity/EquipmentSlot.java
 @@ -20,9 +20,12 @@ public enum EquipmentSlot implements StringRepresentable {
@@ -304,7 +300,7 @@ index 33d296e826093ce3afc9f1edaa6ccbd6c25a5a7d..bf9787e82b408961ea6eae9529aa3521
      private final EquipmentSlot.Type type;
      private final int index;
 diff --git a/net/minecraft/world/entity/EquipmentSlotGroup.java b/net/minecraft/world/entity/EquipmentSlotGroup.java
-index ea365265e40c0efa386f47e3fa45bc829ef552fa..49e1f62c44398c2ba3536633d41af497e9591340 100644
+index e9b1290f24ba30663110abc61310d0a1e784e5a1..86a4af6a7af86853a4387a1df06427a06f9facd6 100644
 --- a/net/minecraft/world/entity/EquipmentSlotGroup.java
 +++ b/net/minecraft/world/entity/EquipmentSlotGroup.java
 @@ -24,6 +24,7 @@ public enum EquipmentSlotGroup implements StringRepresentable, Iterable<Equipmen
@@ -329,10 +325,10 @@ index 4b018c64d3123bb7a0687491d2ac3a535302890c..f71cb65d2e8c6a6030b2fc0501bb7537
  
      private static Map<EquipmentSlot, Float> createForAllSlots(final List<EquipmentSlot> slots, final float dropChance) {
 diff --git a/net/minecraft/world/entity/LivingEntity.java b/net/minecraft/world/entity/LivingEntity.java
-index 6a0ebbdfcc0bc07915574c1cf87463e82213ca7e..05ecb567b0c11182eeef0ed31dccbab1f418d363 100644
+index 358ff4330102a058c86d8209374d8cb9dd18b6ad..716e185f86e703387fa8cd7a5ae338ef3d1fef0b 100644
 --- a/net/minecraft/world/entity/LivingEntity.java
 +++ b/net/minecraft/world/entity/LivingEntity.java
-@@ -3579,7 +3579,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+@@ -3580,7 +3580,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
          Map<org.bukkit.inventory.EquipmentSlot, io.papermc.paper.event.entity.EntityEquipmentChangedEvent.EquipmentChange> equipmentChanges = null;
          // Paper end - EntityEquipmentChangedEvent
  
@@ -341,7 +337,7 @@ index 6a0ebbdfcc0bc07915574c1cf87463e82213ca7e..05ecb567b0c11182eeef0ed31dccbab1
              ItemStack previous = this.lastEquipmentItems.get(slot);
              ItemStack current = this.getItemBySlot(slot);
              if (this.equipmentHasChanged(previous, current)) {
-@@ -3862,7 +3862,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
+@@ -3863,7 +3863,7 @@ public abstract class LivingEntity extends Entity implements Attackable, Waypoin
  
      protected boolean canGlide() {
          if (!this.onGround() && !this.isPassenger() && !this.hasEffect(MobEffects.LEVITATION)) {
@@ -351,7 +347,7 @@ index 6a0ebbdfcc0bc07915574c1cf87463e82213ca7e..05ecb567b0c11182eeef0ed31dccbab1
                      return true;
                  }
 diff --git a/net/minecraft/world/entity/Mob.java b/net/minecraft/world/entity/Mob.java
-index 5bbb5cbb51953399c7bce547cd6968eb3c6bd130..bed371bf6dcc4320d81fcc157623941172332e08 100644
+index ea144213f5ac2f813c9007113e4066a3295a7f76..e74a72a7d239ba43b4eabbafbdddbfa6cea08b5e 100644
 --- a/net/minecraft/world/entity/Mob.java
 +++ b/net/minecraft/world/entity/Mob.java
 @@ -364,7 +364,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
@@ -363,7 +359,7 @@ index 5bbb5cbb51953399c7bce547cd6968eb3c6bd130..bed371bf6dcc4320d81fcc1576239411
                  if (slot.canIncreaseExperience()) {
                      ItemStack item = this.getItemBySlot(slot);
                      if (!item.isEmpty() && this.dropChances.byEquipment(slot) <= 1.0F) {
-@@ -1044,7 +1044,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
+@@ -1045,7 +1045,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
      protected void dropCustomDeathLoot(final ServerLevel level, final DamageSource source, final boolean killedByPlayer) {
          super.dropCustomDeathLoot(level, source, killedByPlayer);
  
@@ -372,7 +368,7 @@ index 5bbb5cbb51953399c7bce547cd6968eb3c6bd130..bed371bf6dcc4320d81fcc1576239411
              if (this.shouldSkipLoot(slot)) continue; // Paper
              ItemStack itemStack = this.getItemBySlot(slot);
              float dropChance = this.dropChances.byEquipment(slot);
-@@ -1088,7 +1088,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
+@@ -1089,7 +1089,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
      public Set<EquipmentSlot> dropPreservedEquipment(final ServerLevel level, final Predicate<ItemStack> shouldDrop) {
          Set<EquipmentSlot> slotsPreventedFromDropping = new HashSet<>();
  
@@ -381,7 +377,7 @@ index 5bbb5cbb51953399c7bce547cd6968eb3c6bd130..bed371bf6dcc4320d81fcc1576239411
              ItemStack itemStack = this.getItemBySlot(slot);
              if (!itemStack.isEmpty()) {
                  if (!shouldDrop.test(itemStack)) {
-@@ -1218,7 +1218,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
+@@ -1219,7 +1219,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
      protected void populateDefaultEquipmentEnchantments(final ServerLevelAccessor level, final RandomSource random, final DifficultyInstance localDifficulty) {
          this.enchantSpawnedWeapon(level, random, localDifficulty);
  
@@ -390,7 +386,7 @@ index 5bbb5cbb51953399c7bce547cd6968eb3c6bd130..bed371bf6dcc4320d81fcc1576239411
              if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
                  this.enchantSpawnedArmor(level, random, slot, localDifficulty);
              }
-@@ -1639,7 +1639,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
+@@ -1640,7 +1640,7 @@ public abstract class Mob extends LivingEntity implements Targeting, EquipmentUs
      protected void removeAfterChangingDimensions() {
          super.removeAfterChangingDimensions();
  
@@ -400,10 +396,10 @@ index 5bbb5cbb51953399c7bce547cd6968eb3c6bd130..bed371bf6dcc4320d81fcc1576239411
              if (!itemStack.isEmpty()) {
                  itemStack.setCount(0);
 diff --git a/net/minecraft/world/entity/decoration/ArmorStand.java b/net/minecraft/world/entity/decoration/ArmorStand.java
-index fc4fce0b1d57a62c1e5c80a5b91c2b1a77d4bace..27fc32f8edc60554ab3732280b4483dd19616555 100644
+index f42fd10847a1dfbcbb2790aa90da4a49585e25a8..b188ffa94173b73d01ce33089aa6ed9a14b314c7 100644
 --- a/net/minecraft/world/entity/decoration/ArmorStand.java
 +++ b/net/minecraft/world/entity/decoration/ArmorStand.java
-@@ -458,7 +458,7 @@ public class ArmorStand extends LivingEntity {
+@@ -481,7 +481,7 @@ public class ArmorStand extends LivingEntity {
          this.playBrokenSound();
          // this.dropAllDeathLoot(level, source); // CraftBukkit - moved down
  
@@ -412,7 +408,7 @@ index fc4fce0b1d57a62c1e5c80a5b91c2b1a77d4bace..27fc32f8edc60554ab3732280b4483dd
              ItemStack itemStack = this.equipment.get(slot); // Paper - move equipment removal past event call
              if (!itemStack.isEmpty() && !EnchantmentHelper.has(itemStack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
                  this.drops.add(new DefaultDrop(itemStack, stack -> Block.popResource(this.level(), this.blockPosition().above(), stack))); // CraftBukkit - add to drops // Paper - Restore vanilla drops behavior; mirror so we can destroy it later - though this call site was safe & spawn drops correctly}
-@@ -467,7 +467,7 @@ public class ArmorStand extends LivingEntity {
+@@ -490,7 +490,7 @@ public class ArmorStand extends LivingEntity {
          // Paper start - move equipment removal past event call
          org.bukkit.event.entity.EntityDeathEvent event = this.dropAllDeathLoot(level, source);
          if (!event.isCancelled()) {
@@ -422,10 +418,10 @@ index fc4fce0b1d57a62c1e5c80a5b91c2b1a77d4bace..27fc32f8edc60554ab3732280b4483dd
              }
          }
 diff --git a/net/minecraft/world/entity/player/Player.java b/net/minecraft/world/entity/player/Player.java
-index b8c40b7e9a52211181bcd3d8e8c6041b6319d727..800d2d87d80827375c6bcfc405b6115c9938fd82 100644
+index e34b050cfeb9d9afa1869b19ff862627d27d60f7..040d2c3605c9ba2e710181fc934b21709b17fe28 100644
 --- a/net/minecraft/world/entity/player/Player.java
 +++ b/net/minecraft/world/entity/player/Player.java
-@@ -341,7 +341,7 @@ public abstract class Player extends Avatar implements ContainerUser {
+@@ -344,7 +344,7 @@ public abstract class Player extends Avatar implements ContainerUser {
      }
  
      private boolean isEquipped(final Item item) {
@@ -435,10 +431,10 @@ index b8c40b7e9a52211181bcd3d8e8c6041b6319d727..800d2d87d80827375c6bcfc405b6115c
              Equippable equippable = itemStack.get(DataComponents.EQUIPPABLE);
              if (itemStack.is(item) && equippable != null && equippable.slot() == slot) {
 diff --git a/net/minecraft/world/item/ItemStack.java b/net/minecraft/world/item/ItemStack.java
-index 54d67c847c1de9ee216cedb0527136f50223ea2d..1060bf4fba9aac6b151ccd0daef49a5d3ddff31e 100644
+index 1d08ac66271a441811a157ed6619b14bf58c403f..33d933c7f4f9a498bc33c03196cb0467ca27a410 100644
 --- a/net/minecraft/world/item/ItemStack.java
 +++ b/net/minecraft/world/item/ItemStack.java
-@@ -1195,7 +1195,7 @@ public final class ItemStack implements DataComponentHolder, ItemInstance {
+@@ -1203,7 +1203,7 @@ public final class ItemStack implements DataComponentHolder, ItemInstance {
  
      private void addAttributeTooltips(final Consumer<Component> consumer, final TooltipDisplay display, final @Nullable Player player) {
          if (display.shows(DataComponents.ATTRIBUTE_MODIFIERS)) {
@@ -448,7 +444,7 @@ index 54d67c847c1de9ee216cedb0527136f50223ea2d..1060bf4fba9aac6b151ccd0daef49a5d
                  this.forEachModifier(slot, (attribute, modifier, tooltip) -> {
                      if (tooltip != ItemAttributeModifiers.Display.hidden()) {
 diff --git a/net/minecraft/world/item/crafting/ShapedRecipePattern.java b/net/minecraft/world/item/crafting/ShapedRecipePattern.java
-index a8501a16350e98f6bf28482bde0b68d55ca6d222..f3a71b60b633d754ed5ce4d97630e73f3e668641 100644
+index b2ca30b84a6f498a2b18145eb1efaea7c4c5c943..d55b78f88973357aaa05d24e485bb4ba0df21054 100644
 --- a/net/minecraft/world/item/crafting/ShapedRecipePattern.java
 +++ b/net/minecraft/world/item/crafting/ShapedRecipePattern.java
 @@ -18,6 +18,7 @@ import net.minecraft.network.codec.StreamCodec;
@@ -465,24 +461,11 @@ index a8501a16350e98f6bf28482bde0b68d55ca6d222..f3a71b60b633d754ed5ce4d97630e73f
          if (pattern.size() == bottom) {
 -            return new String[0];
 +            return ArrayConstants.emptyStringArray; // SW - reduce array allocations
-         } else {
-             String[] result = new String[pattern.size() - bottom - top];
+         }
  
-diff --git a/net/minecraft/world/item/enchantment/Enchantment.java b/net/minecraft/world/item/enchantment/Enchantment.java
-index 0d981b86fa7ee8713e2a419fc2f377defbc2ed9c..a71d2011f25700a230cab99074de005fce29f8f7 100644
---- a/net/minecraft/world/item/enchantment/Enchantment.java
-+++ b/net/minecraft/world/item/enchantment/Enchantment.java
-@@ -107,7 +107,7 @@ public record Enchantment(Component description, Enchantment.EnchantmentDefiniti
-     public Map<EquipmentSlot, ItemStack> getSlotItems(final LivingEntity entity) {
-         Map<EquipmentSlot, ItemStack> itemStacks = Maps.newEnumMap(EquipmentSlot.class);
- 
--        for (EquipmentSlot slot : EquipmentSlot.VALUES) {
-+        for (EquipmentSlot slot : EquipmentSlot.VALUES_ARRAY) {
-             if (this.matchingSlot(slot)) {
-                 ItemStack itemStack = entity.getItemBySlot(slot);
-                 if (!itemStack.isEmpty()) {
+         String[] result = new String[pattern.size() - bottom - top];
 diff --git a/net/minecraft/world/item/enchantment/EnchantmentHelper.java b/net/minecraft/world/item/enchantment/EnchantmentHelper.java
-index d5f749fd0745555fa91e184abea0c40ab873c182..ba9ef474d31579033df6709d01a89dbaefcf1be6 100644
+index ed84782f4fcaec8f12ab68641a42ad6e09079875..d66a54af4d9dd57ae446633ff3c51ea8cde1fa2f 100644
 --- a/net/minecraft/world/item/enchantment/EnchantmentHelper.java
 +++ b/net/minecraft/world/item/enchantment/EnchantmentHelper.java
 @@ -157,7 +157,7 @@ public class EnchantmentHelper {
@@ -504,7 +487,7 @@ index d5f749fd0745555fa91e184abea0c40ab873c182..ba9ef474d31579033df6709d01a89dba
              if (predicate.test(item)) {
                  ItemEnchantments enchantments = item.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
 diff --git a/net/minecraft/world/level/Level.java b/net/minecraft/world/level/Level.java
-index e1fd30fc9b17d241c421c66114c9611b2979053e..b957978d9ee0588b9790d736f6ee5c91e4e9409c 100644
+index 90600ee28f28b7a863dba2c750b4a2195fb91c7a..ef6f2a79e6ba0ac2d918284cef260215fd0e9543 100644
 --- a/net/minecraft/world/level/Level.java
 +++ b/net/minecraft/world/level/Level.java
 @@ -89,6 +89,7 @@ import net.minecraft.world.phys.AABB;
@@ -534,7 +517,7 @@ index e1fd30fc9b17d241c421c66114c9611b2979053e..b957978d9ee0588b9790d736f6ee5c91
      // Paper end - rewrite chunk system
  
 diff --git a/net/minecraft/world/level/block/ComposterBlock.java b/net/minecraft/world/level/block/ComposterBlock.java
-index 3eb65e5ed0241330ebde3e05f7865e294d4b48e7..57c10235f15f22adb4b5e03b5d9bf368bfb3cb7b 100644
+index 69e3969242ad52168e947af209e6fa72f36178ae..3d574a4eb2a8356657867cfecefb2d4eddad956e 100644
 --- a/net/minecraft/world/level/block/ComposterBlock.java
 +++ b/net/minecraft/world/level/block/ComposterBlock.java
 @@ -39,6 +39,7 @@ import net.minecraft.world.phys.shapes.BooleanOp;
@@ -573,10 +556,10 @@ index 3eb65e5ed0241330ebde3e05f7865e294d4b48e7..57c10235f15f22adb4b5e03b5d9bf368
  
          @Override
 diff --git a/net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity.java b/net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity.java
-index f41b01bfa9443b46f9ca0d33d1b03280f0214b93..68c0a9cecabb0032c32784f7e0efe24becb76648 100644
+index d74df87d1228a9144ffb864ddb67ca1bb7d13c1f..59d82e07d28825e0db8b53c54679d19701eac653 100644
 --- a/net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity.java
 +++ b/net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity.java
-@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.state.BlockState;
+@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
  import net.minecraft.world.level.storage.ValueInput;
  import net.minecraft.world.level.storage.ValueOutput;
  import net.minecraft.world.phys.Vec3;
@@ -584,7 +567,7 @@ index f41b01bfa9443b46f9ca0d33d1b03280f0214b93..68c0a9cecabb0032c32784f7e0efe24b
  import org.jspecify.annotations.Nullable;
  
  public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, StackedContentsCompatible, RecipeCraftingHolder {
-@@ -45,7 +46,7 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
+@@ -44,7 +45,7 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
      protected static final int SLOT_FUEL = 1;
      protected static final int SLOT_RESULT = 2;
      public static final int DATA_LIT_TIME = 0;
@@ -594,7 +577,7 @@ index f41b01bfa9443b46f9ca0d33d1b03280f0214b93..68c0a9cecabb0032c32784f7e0efe24b
      private static final int[] SLOTS_FOR_SIDES = new int[]{1};
      public static final int DATA_LIT_DURATION = 1;
 diff --git a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
-index 83a3ecf728be1129b07b5ab450861f2154cee92b..2cd8e7c31cb8c88e2e8192dbd40f8c576d6f02e5 100644
+index aab932de7b8eea03d27d3de1f4541add0552f0b1..844f2b8422ad0ba20f2ec878d42fc34a766358f8 100644
 --- a/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 +++ b/net/minecraft/world/level/saveddata/maps/MapItemSavedData.java
 @@ -269,7 +269,7 @@ public class MapItemSavedData extends SavedData {
@@ -608,12 +591,11 @@ index 83a3ecf728be1129b07b5ab450861f2154cee92b..2cd8e7c31cb8c88e2e8192dbd40f8c57
                  && player.getItemBySlot(equipmentSlot).is(ItemTags.MAP_INVISIBILITY_EQUIPMENT)) {
 diff --git a/net/wechandoit/ArrayConstants.java b/net/wechandoit/ArrayConstants.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..063e3130140faf4978d805bbe370c9e5b65d1ebb
+index 0000000000000000000000000000000000000000..a8ce47db9f3e5b442d17ce78480067a37fbbb42d
 --- /dev/null
 +++ b/net/wechandoit/ArrayConstants.java
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,19 @@
 +// From JettPack/Gale - reduce array allocations
-+
 +package net.wechandoit;
 +
 +public final class ArrayConstants {
@@ -632,4 +614,3 @@ index 0000000000000000000000000000000000000000..063e3130140faf4978d805bbe370c9e5
 +    //public static final net.minecraft.server.level.ServerLevel[] emptyServerLevelArray = new net.minecraft.server.level.ServerLevel[0];
 +    public static final net.minecraft.tags.TagKey[] emptyTagKeyArray = new net.minecraft.tags.TagKey[0]; // Leaf - Optimize isEyeInFluid
 +}
-\ No newline at end of file

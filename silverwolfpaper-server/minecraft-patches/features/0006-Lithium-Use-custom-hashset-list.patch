@@ -5,7 +5,7 @@ Subject: [PATCH] Lithium: Use custom hashset/list
 
 
 diff --git a/net/minecraft/util/random/WeightedList.java b/net/minecraft/util/random/WeightedList.java
-index 48e1dfb3f9f6514193b71ce20dcc5ee09ca7036f..a67e78dd22710ee3902190db1422d5da0d3fafa7 100644
+index 5aca30fa9046e756efbc28e8a81c1271d3435930..135f0b455b8c79b405adc5be85d27d27088aba5a 100644
 --- a/net/minecraft/util/random/WeightedList.java
 +++ b/net/minecraft/util/random/WeightedList.java
 @@ -11,9 +11,11 @@ import java.util.List;
