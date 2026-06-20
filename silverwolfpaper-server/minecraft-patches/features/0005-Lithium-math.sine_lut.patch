@@ -5,7 +5,7 @@ Subject: [PATCH] Lithium: math.sine_lut
 
 
 diff --git a/net/minecraft/util/Mth.java b/net/minecraft/util/Mth.java
-index 00c4f8c865f06ab89f593b65c68625768399d0ca..7706a9c7befe98839e63e22092b84f698727e85a 100644
+index 4915e6d5757f9bf8d3b16990208800c43ead9705..950d9af3b32d2259190806b7e087c8a5dd4d46da 100644
 --- a/net/minecraft/util/Mth.java
 +++ b/net/minecraft/util/Mth.java
 @@ -7,6 +7,7 @@ import java.util.stream.IntStream;
@@ -16,7 +16,7 @@ index 00c4f8c865f06ab89f593b65c68625768399d0ca..7706a9c7befe98839e63e22092b84f69
  import org.apache.commons.lang3.math.Fraction;
  import org.apache.commons.lang3.math.NumberUtils;
  import org.joml.Quaternionf;
-@@ -31,7 +32,7 @@ public class Mth {
+@@ -32,7 +33,7 @@ public class Mth {
      private static final int SIN_MASK = 65535;
      private static final int COS_OFFSET = 16384;
      private static final double SIN_SCALE = 10430.378350470453;
@@ -25,7 +25,7 @@ index 00c4f8c865f06ab89f593b65c68625768399d0ca..7706a9c7befe98839e63e22092b84f69
          for (int i = 0; i < sin.length; i++) {
              sin[i] = (float)Math.sin(i / 10430.378350470453);
          }
-@@ -47,11 +48,11 @@ public class Mth {
+@@ -48,11 +49,11 @@ public class Mth {
      private static final double[] COS_TAB = new double[257];
  
      public static float sin(final double i) {

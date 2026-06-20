@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: wechandoit <ethanchan7981@gmail.com>
-Date: Thu, 7 May 2026 01:06:22 -0400
+Date: Fri, 19 Jun 2026 22:54:56 -0400
 Subject: [PATCH] Purpur: add ping command
 
 
@@ -40,10 +40,10 @@ index 89b9d1a4122d502437d516f8affc5ba72f421f5f..584b34ca7514c2e4bd898a5beb72d71e
          boolean shouldSendSystemMessage = this.source.acceptsSuccess() && !this.silent;
          boolean shouldBroadcast = broadcast && this.source.shouldInformAdmins() && !this.silent;
 diff --git a/net/minecraft/commands/Commands.java b/net/minecraft/commands/Commands.java
-index 01a9a01db6908c2f6c511be4628f518ce6a16de7..779fc3acd4368701af1916c3d5f15a5c072d7018 100644
+index d210f991366796d84e947df0a057c1adc62824f8..c6880a860b0b9c6d63816f96098ccbe3752f68fa 100644
 --- a/net/minecraft/commands/Commands.java
 +++ b/net/minecraft/commands/Commands.java
-@@ -44,98 +44,7 @@ import net.minecraft.network.chat.MutableComponent;
+@@ -44,99 +44,7 @@ import net.minecraft.network.chat.MutableComponent;
  import net.minecraft.network.protocol.game.ClientboundCommandsPacket;
  import net.minecraft.resources.Identifier;
  import net.minecraft.resources.ResourceKey;
@@ -133,6 +133,7 @@ index 01a9a01db6908c2f6c511be4628f518ce6a16de7..779fc3acd4368701af1916c3d5f15a5c
 -import net.minecraft.server.commands.TitleCommand;
 -import net.minecraft.server.commands.TransferCommand;
 -import net.minecraft.server.commands.TriggerCommand;
+-import net.minecraft.server.commands.UnpublishCommand;
 -import net.minecraft.server.commands.VersionCommand;
 -import net.minecraft.server.commands.WardenSpawnTrackerCommand;
 -import net.minecraft.server.commands.WaypointCommand;
@@ -143,17 +144,17 @@ index 01a9a01db6908c2f6c511be4628f518ce6a16de7..779fc3acd4368701af1916c3d5f15a5c
  import net.minecraft.server.commands.data.DataCommands;
  import net.minecraft.server.level.ServerPlayer;
  import net.minecraft.server.permissions.PermissionCheck;
-@@ -228,6 +137,7 @@ public class Commands {
+@@ -229,6 +137,7 @@ public class Commands {
          MsgCommand.register(this.dispatcher);
          SwingCommand.register(this.dispatcher);
          ParticleCommand.register(this.dispatcher, context);
-+        PingCommand.register(this.dispatcher); // SW: Purpur - Add ping command
++        PingCommand.register(this.dispatcher); // SW: Purpur - Add ping commandsss
          PlaceCommand.register(this.dispatcher);
          PlaySoundCommand.register(this.dispatcher);
          RandomCommand.register(this.dispatcher);
 diff --git a/net/minecraft/server/commands/PingCommand.java b/net/minecraft/server/commands/PingCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..28f37d586112589385f6cda4f6186cc387da703a
+index 0000000000000000000000000000000000000000..f0b933506c212fe7bd0f0131f017a54ca5922ac5
 --- /dev/null
 +++ b/net/minecraft/server/commands/PingCommand.java
 @@ -0,0 +1,36 @@
@@ -193,3 +194,4 @@ index 0000000000000000000000000000000000000000..28f37d586112589385f6cda4f6186cc3
 +}
 +
 +// SW: Purpur end - Add ping command
+\ No newline at end of file
