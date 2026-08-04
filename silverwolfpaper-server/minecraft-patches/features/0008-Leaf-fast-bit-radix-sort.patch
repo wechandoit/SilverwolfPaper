@@ -5,10 +5,10 @@ Subject: [PATCH] Leaf: fast bit radix sort
 
 
 diff --git a/net/minecraft/server/level/ServerLevel.java b/net/minecraft/server/level/ServerLevel.java
-index dae32b15ccaba07549cf5844579be3dd019142b9..f16235d3129435a50fb32aeac771c9d31cbfff61 100644
+index 68dd90b413d178d124f4e55086562b678edbab5f..745a9dce64ed536814f4f6308d506e066cedb4cc 100644
 --- a/net/minecraft/server/level/ServerLevel.java
 +++ b/net/minecraft/server/level/ServerLevel.java
-@@ -1005,6 +1005,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
+@@ -1006,6 +1006,7 @@ public class ServerLevel extends Level implements WorldGenLevel, ServerEntityGet
      }
  
      // Paper start - optimise random ticking

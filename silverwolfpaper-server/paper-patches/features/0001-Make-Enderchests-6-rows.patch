@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Tue, 4 Aug 2026 01:00:54 -0400
+Subject: [PATCH] Make Enderchests 6 rows
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/inventory/CraftContainer.java b/src/main/java/org/bukkit/craftbukkit/inventory/CraftContainer.java
+index 2f41a92465b9da28e026297cc3528898bb1c8412..694bd9bf0ad440e3508ae39bf0146917edeaa3a2 100644
+--- a/src/main/java/org/bukkit/craftbukkit/inventory/CraftContainer.java
++++ b/src/main/java/org/bukkit/craftbukkit/inventory/CraftContainer.java
+@@ -147,10 +147,13 @@ public class CraftContainer extends AbstractContainerMenu {
+                 break; // TODO: This should be an error?
+             case PLAYER:
+             case CHEST:
+-            case ENDER_CHEST:
+             case BARREL:
+                 this.delegate = new ChestMenu(net.minecraft.world.inventory.MenuType.GENERIC_9x3, windowId, bottom, top, top.getContainerSize() / 9);
+                 break;
++            case ENDER_CHEST:
++                // SW - Make ender chests 6 rows
++                this.delegate = new ChestMenu(net.minecraft.world.inventory.MenuType.GENERIC_9x6, windowId, bottom, top, top.getContainerSize() / 9);
++                break;
+             case DISPENSER:
+             case DROPPER:
+                 this.delegate = new DispenserMenu(windowId, bottom, top);

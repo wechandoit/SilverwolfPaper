@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: wechandoit <ethanchan7981@gmail.com>
+Date: Tue, 4 Aug 2026 01:24:59 -0400
+Subject: [PATCH] Make Enderchests 6 rows
+
+
+diff --git a/net/minecraft/world/inventory/PlayerEnderChestContainer.java b/net/minecraft/world/inventory/PlayerEnderChestContainer.java
+index 4df3a32faf85595372f4b250482d852c985ea3ab..c43f2cbe87f1a0d41efc9525ca770340e6fca5d1 100644
+--- a/net/minecraft/world/inventory/PlayerEnderChestContainer.java
++++ b/net/minecraft/world/inventory/PlayerEnderChestContainer.java
+@@ -26,11 +26,18 @@ public class PlayerEnderChestContainer extends SimpleContainer {
+     }
+ 
+     public PlayerEnderChestContainer(Player owner) {
+-        super(27);
++        super(54); // SW - Make enderchests 6 rows
+         this.owner = owner;
+         // CraftBukkit end
+     }
+ 
++    // SW - Make enderchests 6 rows
++    @Override
++    public int getContainerSize() {
++        return 54;
++    }
++    // SW - Make enderchests 6 rows
++
+     public void setActiveChest(final EnderChestBlockEntity activeChest) {
+         this.activeChest = activeChest;
+     }
+diff --git a/net/minecraft/world/level/block/EnderChestBlock.java b/net/minecraft/world/level/block/EnderChestBlock.java
+index f1a5b9670dd04b800a8d755f32364458a16d924a..6d8d6aaad30668ee2c9927afc8ab36d4cfe77ca4 100644
+--- a/net/minecraft/world/level/block/EnderChestBlock.java
++++ b/net/minecraft/world/level/block/EnderChestBlock.java
+@@ -88,9 +88,9 @@ public class EnderChestBlock extends AbstractChestBlock<EnderChestBlockEntity> i
+             }
+ 
+             // Paper start - Fix InventoryOpenEvent cancellation - moved up;
+-            container.setActiveChest(enderChest); // Needs to happen before ChestMenu.threeRows as it is required for opening animations
++            container.setActiveChest(enderChest); // Needs to happen before ChestMenu.sixRows as it is required for opening animations
+             if (level instanceof ServerLevel serverLevel && player.openMenu(
+-                new SimpleMenuProvider((containerId, inventory, p) -> ChestMenu.threeRows(containerId, inventory, container), CONTAINER_TITLE)
++                new SimpleMenuProvider((containerId, inventory, p) -> ChestMenu.sixRows(containerId, inventory, container), CONTAINER_TITLE)
+             ).isPresent()) {
+             // Paper end - Fix InventoryOpenEvent cancellation - moved up;
+                 player.awardStat(Stats.OPEN_ENDERCHEST);
