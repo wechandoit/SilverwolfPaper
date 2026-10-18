@@ -29,10 +29,10 @@ index 4df3a32faf85595372f4b250482d852c985ea3ab..c43f2cbe87f1a0d41efc9525ca770340
          this.activeChest = activeChest;
      }
 diff --git a/net/minecraft/world/level/block/EnderChestBlock.java b/net/minecraft/world/level/block/EnderChestBlock.java
-index f1a5b9670dd04b800a8d755f32364458a16d924a..6d8d6aaad30668ee2c9927afc8ab36d4cfe77ca4 100644
+index 34e6bb7d246f065698def3b1f7a0d237f304f2aa..0a7a72be649387097cc84c19de56a1ea724d02ee 100644
 --- a/net/minecraft/world/level/block/EnderChestBlock.java
 +++ b/net/minecraft/world/level/block/EnderChestBlock.java
-@@ -88,9 +88,9 @@ public class EnderChestBlock extends AbstractChestBlock<EnderChestBlockEntity> i
+@@ -81,9 +81,9 @@ public class EnderChestBlock extends AbstractChestBlock<EnderChestBlockEntity> i
              }
  
              // Paper start - Fix InventoryOpenEvent cancellation - moved up;

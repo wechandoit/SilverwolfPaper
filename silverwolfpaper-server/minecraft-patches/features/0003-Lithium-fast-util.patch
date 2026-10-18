@@ -5,10 +5,10 @@ Subject: [PATCH] Lithium: fast util
 
 
 diff --git a/net/minecraft/core/Direction.java b/net/minecraft/core/Direction.java
-index 46547155b817a89a8afe2f8d1a30bf881efc07bc..af661c06064a27e70fe4522dac5fe7342b9b117e 100644
+index c0fdc0a577f34159dc7d047790e26a7c0d4a0d79..9524e0a192b9ca677db6870efef4e33882882834 100644
 --- a/net/minecraft/core/Direction.java
 +++ b/net/minecraft/core/Direction.java
-@@ -77,6 +77,12 @@ public enum Direction implements StringRepresentable, ca.spottedleaf.moonrise.pa
+@@ -77,6 +77,12 @@ public enum Direction implements Directional, StringRepresentable, ca.spottedlea
      private int stepY;
      private int stepZ;
  
@@ -21,7 +21,7 @@ index 46547155b817a89a8afe2f8d1a30bf881efc07bc..af661c06064a27e70fe4522dac5fe734
      private Quaternionf getRotationUncached() {
          switch ((Direction)(Object)this) {
              case DOWN: {
-@@ -223,7 +229,7 @@ public enum Direction implements StringRepresentable, ca.spottedleaf.moonrise.pa
+@@ -223,7 +229,7 @@ public enum Direction implements Directional, StringRepresentable, ca.spottedlea
      }
  
      public Direction getOpposite() {
@@ -30,7 +30,7 @@ index 46547155b817a89a8afe2f8d1a30bf881efc07bc..af661c06064a27e70fe4522dac5fe734
      }
  
      public Direction getClockWise(final Direction.Axis axis) {
-@@ -355,7 +361,7 @@ public enum Direction implements StringRepresentable, ca.spottedleaf.moonrise.pa
+@@ -363,7 +369,7 @@ public enum Direction implements Directional, StringRepresentable, ca.spottedlea
      }
  
      public static Direction getRandom(final RandomSource random) {
@@ -40,7 +40,7 @@ index 46547155b817a89a8afe2f8d1a30bf881efc07bc..af661c06064a27e70fe4522dac5fe734
  
      public static Direction getApproximateNearest(final double dx, final double dy, final double dz) {
 diff --git a/net/minecraft/world/phys/AABB.java b/net/minecraft/world/phys/AABB.java
-index efb79617cebe7234d85721da7b7f1fd6ef1a6a73..f2869b4eb9909539c80f8f31ad1e9aede91588ce 100644
+index 0f64620a09ccfc3b96757f82a1d0c7fc37dd60b6..21077935e46e18b43fcc5f25e4ee14fcf3482952 100644
 --- a/net/minecraft/world/phys/AABB.java
 +++ b/net/minecraft/world/phys/AABB.java
 @@ -19,6 +19,16 @@ public class AABB {

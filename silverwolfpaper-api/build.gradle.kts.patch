@@ -1,5 +1,39 @@
 --- a/aspaper-api/build.gradle.kts
 +++ b/aspaper-api/build.gradle.kts
+@@ -13,14 +_,16 @@
+     withJavadocJar()
+ }
+ 
+-val projectCustomJavadocTags = setOf(
+-    JavadocTag("apiNote", "a", "API Note:"),
+-)
+-
+-paperCheckstyle {
+-    customJavadocTags = projectCustomJavadocTags
+-    directoriesToSkipFile = layout.projectDirectory.file("../paper-api/.checkstyle/ignored_directories.txt")
+-}
++//ASP start: Disable checkstyle
++//val projectCustomJavadocTags = setOf(
++//    JavadocTag("apiNote", "a", "API Note:"),
++//)
++//
++//paperCheckstyle {
++//    customJavadocTags = projectCustomJavadocTags
++//    directoriesToSkipFile = layout.projectDirectory.file("../paper-api/.checkstyle/ignored_directories.txt")
++//}
++//ASP end: Disable checkstyle
+ 
+ tasks.named<io.papermc.paperweight.checkstyle.tasks.MergeCheckstyleConfigs>("mergeCheckstyleConfigs") {
+     overrideConfigFile.set(layout.projectDirectory.file("../paper-api/.checkstyle/checkstyle.xml"))
+@@ -108,7 +_,7 @@
+     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
+ 
+     // checkstyle
+-    checkstyle(project(":aspaper-checkstyle"))
++    //checkstyle(project(":paper-checkstyle")) //ASP: Disable checkstyle
+ }
+ 
+ val generatedDir: java.nio.file.Path = rootProject.layout.projectDirectory.dir("paper-api/src/generated/java").asFile.toPath()
 @@ -122,17 +_,21 @@
          java {
              srcDir(generatedDir)

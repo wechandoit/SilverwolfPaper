@@ -1,17 +1,18 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: wechandoit <ethanchan7981@gmail.com>
-Date: Fri, 19 Jun 2026 22:54:56 -0400
+Date: Sun, 18 Oct 2026 00:14:59 -0400
 Subject: [PATCH] Purpur: add ping command
 
 
 diff --git a/net/minecraft/commands/CommandSourceStack.java b/net/minecraft/commands/CommandSourceStack.java
-index 89b9d1a4122d502437d516f8affc5ba72f421f5f..584b34ca7514c2e4bd898a5beb72d71e229dc7ad 100644
+index 7cbcc8865893ea4f7fae8da13f534c65fcdcd216..da85a9784ddbd871fcfc4251ad38b12a19d5fbd3 100644
 --- a/net/minecraft/commands/CommandSourceStack.java
 +++ b/net/minecraft/commands/CommandSourceStack.java
-@@ -513,6 +513,30 @@ public class CommandSourceStack implements SharedSuggestionProvider, ExecutionCo
+@@ -520,6 +520,30 @@ public class CommandSourceStack implements SharedSuggestionProvider, ExecutionCo
+             }
          }
      }
- 
++    
 +    // SW: Purpur start - Purpur config files
 +    public void sendSuccess(@Nullable String message) {
 +        sendSuccess(message, false);
@@ -19,8 +20,8 @@ index 89b9d1a4122d502437d516f8affc5ba72f421f5f..584b34ca7514c2e4bd898a5beb72d71e
 +
 +    public void sendSuccess(@Nullable String message, boolean broadcastToOps) {
 +        if (message == null) {
-+            return;
-+        }
++                return;
++            }
 +        sendSuccess(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(message), broadcastToOps);
 +    }
 +
@@ -30,20 +31,19 @@ index 89b9d1a4122d502437d516f8affc5ba72f421f5f..584b34ca7514c2e4bd898a5beb72d71e
 +
 +    public void sendSuccess(net.kyori.adventure.text.@Nullable Component message, boolean broadcastToOps) {
 +        if (message == null) {
-+            return;
-+        }
++                return;
++            }
 +        sendSuccess(() -> io.papermc.paper.adventure.PaperAdventure.asVanilla(message), broadcastToOps);
 +    }
 +    // SW: Purpur end - Purpur config files
-+
+ 
      public void sendSuccess(final Supplier<Component> messageSupplier, final boolean broadcast) {
          boolean shouldSendSystemMessage = this.source.acceptsSuccess() && !this.silent;
-         boolean shouldBroadcast = broadcast && this.source.shouldInformAdmins() && !this.silent;
 diff --git a/net/minecraft/commands/Commands.java b/net/minecraft/commands/Commands.java
-index d210f991366796d84e947df0a057c1adc62824f8..c6880a860b0b9c6d63816f96098ccbe3752f68fa 100644
+index d9acbf61ecd3d2800402880dd5d4d92239b01223..dbe5c3ea8f0884ec8471398fba67f8a49dbd1678 100644
 --- a/net/minecraft/commands/Commands.java
 +++ b/net/minecraft/commands/Commands.java
-@@ -44,99 +44,7 @@ import net.minecraft.network.chat.MutableComponent;
+@@ -44,100 +44,7 @@ import net.minecraft.network.chat.MutableComponent;
  import net.minecraft.network.protocol.game.ClientboundCommandsPacket;
  import net.minecraft.resources.Identifier;
  import net.minecraft.resources.ResourceKey;
@@ -56,6 +56,7 @@ index d210f991366796d84e947df0a057c1adc62824f8..c6880a860b0b9c6d63816f96098ccbe3
 -import net.minecraft.server.commands.ChaseCommand;
 -import net.minecraft.server.commands.ClearInventoryCommands;
 -import net.minecraft.server.commands.CloneCommands;
+-import net.minecraft.server.commands.ComputeCommand;
 -import net.minecraft.server.commands.DamageCommand;
 -import net.minecraft.server.commands.DataPackCommand;
 -import net.minecraft.server.commands.DeOpCommands;
@@ -80,7 +81,6 @@ index d210f991366796d84e947df0a057c1adc62824f8..c6880a860b0b9c6d63816f96098ccbe3
 -import net.minecraft.server.commands.GameRuleCommand;
 -import net.minecraft.server.commands.GiveCommand;
 -import net.minecraft.server.commands.HelpCommand;
--import net.minecraft.server.commands.ItemCommands;
 -import net.minecraft.server.commands.JfrCommand;
 -import net.minecraft.server.commands.KickCommand;
 -import net.minecraft.server.commands.KillCommand;
@@ -95,6 +95,7 @@ index d210f991366796d84e947df0a057c1adc62824f8..c6880a860b0b9c6d63816f96098ccbe3
 -import net.minecraft.server.commands.PerfCommand;
 -import net.minecraft.server.commands.PlaceCommand;
 -import net.minecraft.server.commands.PlaySoundCommand;
+-import net.minecraft.server.commands.PostEffectCommand;
 -import net.minecraft.server.commands.PublishCommand;
 -import net.minecraft.server.commands.RaidCommand;
 -import net.minecraft.server.commands.RandomCommand;
@@ -142,19 +143,19 @@ index d210f991366796d84e947df0a057c1adc62824f8..c6880a860b0b9c6d63816f96098ccbe3
 -import net.minecraft.server.commands.WorldBorderCommand;
 +import net.minecraft.server.commands.*;
  import net.minecraft.server.commands.data.DataCommands;
+ import net.minecraft.server.commands.item.ItemCommands;
  import net.minecraft.server.level.ServerPlayer;
- import net.minecraft.server.permissions.PermissionCheck;
-@@ -229,6 +137,7 @@ public class Commands {
-         MsgCommand.register(this.dispatcher);
-         SwingCommand.register(this.dispatcher);
+@@ -234,6 +141,7 @@ public class Commands {
          ParticleCommand.register(this.dispatcher, context);
-+        PingCommand.register(this.dispatcher); // SW: Purpur - Add ping commandsss
-         PlaceCommand.register(this.dispatcher);
+         PlaceCommand.register(this.dispatcher, context);
          PlaySoundCommand.register(this.dispatcher);
++        PingCommand.register(this.dispatcher);
+         PostEffectCommand.register(this.dispatcher);
          RandomCommand.register(this.dispatcher);
+         ReloadCommand.register(this.dispatcher);
 diff --git a/net/minecraft/server/commands/PingCommand.java b/net/minecraft/server/commands/PingCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f0b933506c212fe7bd0f0131f017a54ca5922ac5
+index 0000000000000000000000000000000000000000..751bf52569bb0983752d273b7f866753659ac4d4
 --- /dev/null
 +++ b/net/minecraft/server/commands/PingCommand.java
 @@ -0,0 +1,36 @@
@@ -174,7 +175,7 @@ index 0000000000000000000000000000000000000000..f0b933506c212fe7bd0f0131f017a54c
 +
 +public class PingCommand {
 +    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-+        dispatcher.register(Commands.literal("ping")
++            dispatcher.register(Commands.literal("ping")
 +                .requires((listener) -> listener.hasPermission(Permissions.COMMANDS_GAMEMASTER, "bukkit.command.ping"))
 +                .executes((context) -> execute(context.getSource(), Collections.singleton(context.getSource().getPlayerOrException())))
 +                .then(Commands.argument("targets", EntityArgument.players())

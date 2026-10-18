@@ -1,14 +1,14 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: wechandoit <ethanchan7981@gmail.com>
-Date: Thu, 7 May 2026 00:26:21 -0400
+Date: Sun, 18 Oct 2026 00:05:59 -0400
 Subject: [PATCH] Lithium: redstone wire optimizations
 
 
-diff --git a/net/minecraft/world/level/block/RedStoneWireBlock.java b/net/minecraft/world/level/block/RedStoneWireBlock.java
-index 0e285f38d282b29f625c5578ee1871a6c2b8585d..be86aac47617206d95e1e468de4ca19c11d3cbab 100644
---- a/net/minecraft/world/level/block/RedStoneWireBlock.java
-+++ b/net/minecraft/world/level/block/RedStoneWireBlock.java
-@@ -30,12 +30,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+diff --git a/net/minecraft/world/level/block/RedstoneWireBlock.java b/net/minecraft/world/level/block/RedstoneWireBlock.java
+index ede64a0afbcdc41e60c3f2f5917c89f09b888433..b333434bf3529658a559913b01366298f309e970 100644
+--- a/net/minecraft/world/level/block/RedstoneWireBlock.java
++++ b/net/minecraft/world/level/block/RedstoneWireBlock.java
+@@ -29,12 +29,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  import net.minecraft.world.level.block.state.properties.EnumProperty;
  import net.minecraft.world.level.block.state.properties.IntegerProperty;
  import net.minecraft.world.level.block.state.properties.RedstoneSide;
@@ -22,7 +22,7 @@ index 0e285f38d282b29f625c5578ee1871a6c2b8585d..be86aac47617206d95e1e468de4ca19c
  import net.minecraft.world.phys.BlockHitResult;
  import net.minecraft.world.phys.shapes.CollisionContext;
  import net.minecraft.world.phys.shapes.Shapes;
-@@ -334,10 +329,7 @@ public class RedStoneWireBlock extends Block {
+@@ -327,10 +322,7 @@ public class RedstoneWireBlock extends Block {
      }
  
      public int getBlockSignal(final Level level, final BlockPos pos) {
@@ -34,21 +34,8 @@ index 0e285f38d282b29f625c5578ee1871a6c2b8585d..be86aac47617206d95e1e468de4ca19c
      }
  
      private void checkCornerChangeAt(final Level level, final BlockPos pos) {
-diff --git a/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java b/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
-index 2540a39f40827ff864a9b3e8bec5cb7b43dbcebd..bfa6f2420677e4e55c22b473ea23e91e159ed92f 100644
---- a/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
-+++ b/net/minecraft/world/level/redstone/DefaultRedstoneWireEvaluator.java
-@@ -45,7 +45,6 @@ public class DefaultRedstoneWireEvaluator extends RedstoneWireEvaluator {
-     }
- 
-     public int calculateTargetStrength(final Level level, final BlockPos pos) { // Paper - Optimize redstone
--        int blockSignal = this.getBlockSignal(level, pos);
--        return blockSignal == Redstone.SIGNAL_MAX ? blockSignal : Math.max(blockSignal, this.getIncomingWireSignal(level, pos));
-+        return RedstoneWirePowerCalculations.getNeighborSignal(this.wireBlock, this, level, pos); // SW: Lithium - restone wire optimizations
-     }
- }
 diff --git a/net/minecraft/world/level/redstone/RedstoneWireEvaluator.java b/net/minecraft/world/level/redstone/RedstoneWireEvaluator.java
-index 2b4ecc87c691a47dd9ea1cc89d60f975fd2d2e91..c67a26da429f5dcd75f5fa99109e1b84dd616b52 100644
+index 01a3662cb6539b842e5d62ba150cc0f5990caa04..183f738cc80ef2ca92a84318c2d1895ede4e9aae 100644
 --- a/net/minecraft/world/level/redstone/RedstoneWireEvaluator.java
 +++ b/net/minecraft/world/level/redstone/RedstoneWireEvaluator.java
 @@ -27,22 +27,6 @@ public abstract class RedstoneWireEvaluator {
@@ -77,12 +64,12 @@ index 2b4ecc87c691a47dd9ea1cc89d60f975fd2d2e91..c67a26da429f5dcd75f5fa99109e1b84
  }
 diff --git a/net/minecraft/world/level/redstone/RedstoneWirePowerCalculations.java b/net/minecraft/world/level/redstone/RedstoneWirePowerCalculations.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..009559447d6458a8ec836250538ff9170d1d71f8
+index 0000000000000000000000000000000000000000..177b67d4788d119af9b9d82a2ca771fa4f9f9ff0
 --- /dev/null
 +++ b/net/minecraft/world/level/redstone/RedstoneWirePowerCalculations.java
-@@ -0,0 +1,177 @@
+@@ -0,0 +1,176 @@
 +package net.minecraft.world.level.redstone;
-+
++        
 +import net.minecraft.core.BlockPos;
 +import net.minecraft.core.Direction;
 +import net.minecraft.world.level.Level;
@@ -146,48 +133,47 @@ index 0000000000000000000000000000000000000000..009559447d6458a8ec836250538ff917
 +                }
 +            }
 +        }
-+
++        
 +        boolean checkWiresAbove = false;
-+
++        
 +        if (!ignoreWires) {
 +            // In vanilla this check is done up to 4 times.
 +            BlockPos above = pos.above();
 +            checkWiresAbove = !chunk.getBlockState(above).isRedstoneConductor(level, above);
 +        }
-+
++        
 +        for (Direction dir : Direction.HORIZONTAL) {
 +            signal = Math.max(signal, getSignalFromSide(level, pos.relative(dir), dir, checkWiresAbove));
-+
 +            if (signal >= MAX) {
 +                return MAX;
 +            }
 +        }
-+
++        
 +        return signal;
 +    }
 +
 +    /**
-+     * Calculate the redstone power a wire receives from a block above or below it.
-+     * We do these positions separately because there are no wire connections
-+     * vertically. This simplifies the calculations a little.
-+     */
++      * Calculate the redstone power a wire receives from a block above or below it.
++      * We do these positions separately because there are no wire connections
++      * vertically. This simplifies the calculations a little.
++      */
 +    private static int getSignalFromVertical(Level level, BlockPos pos, BlockState state, Direction toDir) {
 +        int signal = state.getSignal(level, pos, toDir);
 +
-+        if (signal >= MAX) {
-+            return MAX;
-+        }
++                if (signal >= MAX) {
++                return MAX;
++            }
 +
-+        if (state.isRedstoneConductor(level, pos)) {
-+            return Math.max(signal, getDirectSignalTo(level, pos, toDir.getOpposite()));
-+        }
++                if (state.isRedstoneConductor(level, pos)) {
++                return Math.max(signal, getDirectSignalTo(level, pos, toDir.getOpposite()));
++            }
 +
-+        return signal;
++                return signal;
 +    }
 +
 +    /**
-+     * Calculate the redstone power a wire receives from blocks next to it.
-+     */
++      * Calculate the redstone power a wire receives from blocks next to it.
++      */
 +    private static int getSignalFromSide(Level level, BlockPos pos, Direction toDir, boolean checkWiresAbove) {
 +        LevelChunk chunk = level.getChunkAt(pos);
 +        BlockState state = chunk.getBlockState(pos);
@@ -235,8 +221,8 @@ index 0000000000000000000000000000000000000000..009559447d6458a8ec836250538ff917
 +    }
 +
 +    /**
-+     * Calculate the strong power a block receives from the blocks around it.
-+     */
++      * Calculate the strong power a block receives from the blocks around it.
++      */
 +    private static int getDirectSignalTo(Level level, BlockPos pos, Direction ignore) {
 +        int signal = MIN;
 +
@@ -258,3 +244,4 @@ index 0000000000000000000000000000000000000000..009559447d6458a8ec836250538ff917
 +        return signal;
 +    }
 +}
+\ No newline at end of file
